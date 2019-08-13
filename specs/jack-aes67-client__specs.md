@@ -16,19 +16,14 @@
 
 ## Purpose
 
-
-\<Identify the product whose software requirements are specified in this
-document, including the revision or release number. Describe the scope of the
-product that is covered by this SRS, particularly if this SRS describes only
-part of the system or a single subsystem.\>
+Proper AES67 support is not present at the moment on GNU/Linux. This project intends to fix that, by creating a software set allowing to receive and stream audio on an AES67 network.
+Porting to Windows and macOS is kept in mind but will be distant-future work.
 
 ## Document Conventions
 
-\<Describe any standards or typographical conventions that were followed when
-writing this SRS, such as fonts or highlighting that have special significance.
-For example, state whether priorities for higher-level requirements are assumed
-to be inherited by detailed requirements, or whether every requirement statement
-is to have its own priority.\>
+- CLI = Command Line Interface
+- TUI = Text-based User Interface (typically ncurses)
+- GUI = Graphical User Interface
 
 ## Intended Audience and Reading Suggestions
 
@@ -41,31 +36,115 @@ each reader type.\>
 
 ## Product Scope
 
-\<Provide a short description of the software being specified and its purpose,
-including relevant benefits, objectives, and goals. Relate the software to
-corporate goals or business strategies. If a separate vision and scope document
-is available, refer to it rather than duplicating its contents here.\>
+This software shall be a JACK client acting as a gateway between AES67 streams available on the network the computer is connected to, and other JACK clients. It is not intended to do any file operation, any resampling, etc. Just handing streams to the JACK server and the other way around.
+
+The benefits of making it a JACK client is that it allows the user to monitor audio through a regular audio interface, as well as to use any recording or playback software that supports JACK.
+
+Other ways that have been considered :
+
+* A virtual ALSA driver
+
+This would have required using the ALSA API, which is an undocumented mess, despite being functional. Moreover, it would not have allowed the user to monitor using an audio interface. There could have been the workaround of using alsa_in and alsa_out for JACK, but it is really not a clean way of doing it.
+
+* A standalone Software
+
+This would have required writing an actual recording/playback software, which is really not interesting and too time-consuming considering that there are some perfectly good ones already. Also it would lack flexibility.
+
+#### Short-term goals
+
+##### Backend
+
+- AES67 receiving :
+  - Stream Bit depth : L16, L24
+  - Stream Sample rate : 44.1kHz, 48kHz
+  - Stream Channel count : 1, 2
+  - Number of streams : 2 Mono or 1 Stereo
+
+##### Frontend
+
+- Types of human interfaces :
+  - Unix-like CLI
+- Audio section :
+  - Patching of the incoming streams
+  - Patching of outgoing streams
+
+#### Mid-term goals
+
+##### Backend
+
+- AES67 streaming and receiving :
+  - Stream Bit depth : L16, L24
+  - Stream Sample rate : 44.1kHz, 48kHz
+  - Stream Channel count : 1, 2
+  - Number of streams : 16 Mono or 8 Stereo
+- PTPv2 (IEEE 1588-2008) slave-only synchronization :
+  - Hardware timestamping
+- Publishing and Discovery :
+  - SAP (Dante-like)
+  - mDNS+DNS-SD (RAVENNA-like)
+
+##### Frontend
+
+- Types of human interfaces :
+  - Unix-like CLI
+- Full control over the backend daemon :
+  - Start/Stop/Restart
+  - Kill
+- Audio section :
+  - Discovery and patching of the incoming streams
+  - Patching of outgoing streams
+- Sync section :
+  - Simplified PTP settings with presets
+
+#### Long-term goals
+
+##### Backend
+
+- AES67 streaming and receiving :
+  - Stream Bit depth : L16, L24
+  - Stream Sample rate : 44.1kHz, 48kHz, 88.2kHz, 96kHz
+  - Stream Channel count : 1, 2, 4, 8, 16
+  - Number of streams : As much as the system can handle
+- PTPv2 (IEEE 1588-2008) slave-only synchronization :
+  - Software timestamping
+  - Hardware timestamping
+- Publishing and Discovery :
+  - SAP (Dante-like)
+  - mDNS+DNS-SD (RAVENNA-like)
+
+##### Frontend
+
+- Types of human interfaces :
+  - Unix-like CLI
+  - nCurses-based TUI
+  - Qt-based GUI
+- Full control over the backend daemon :
+  - Start/Stop/Restart
+  - Kill
+  - Return to "factory" defaults
+- Audio section :
+  - Discovery and patching of the incoming streams
+  - Patching of outgoing streams
+  - In/Out Monitoring through peakmeters
+- Sync section :
+  - Simplified PTP settings with presets
+  - Monitoring of the offset to the Grandmaster
+- Network section :
+  - IP configuration
+  - Status and bandwidth monitoring
 
 ## References
 
-\<List any other documents or Web addresses to which this SRS refers. These may
-include user interface style guides, contracts, standards, system requirements
-specifications, use case documents, or a vision and scope document. Provide
-enough information so that the reader could access a copy of each reference,
-including title, author, version number, date, and source or location.\>
+- AES67-2018
+- IEEE 1588-2008
 
 # Overall Description
 
 ## Product Perspective
 
-\<Describe the context and origin of the product being specified in this SRS.
-For example, state whether this product is a follow-on member of a product
-family, a replacement for certain existing systems, or a new, self-contained
-product. If the SRS defines a component of a larger system, relate the
-requirements of the larger system to the functionality of this software and
-identify interfaces between the two. A simple diagram that shows the major
-components of the overall system, subsystem interconnections, and external
-interfaces can be helpful.\>
+As stated in the introduction, open-source software-based AES67 support for end users is non-existant for GNU/Linux at the moment.
+
+Despite having a lot of excellent audio tools, audio production on GNU/Linux is not very widespread mostly due to the lack of drivers for audio hardware. Apart from simple class-compliant USB interfaces, it is hard to find compatible hardware for extended use. This project is aiming to change that by bringing AES67 support to GNU/Linux : that way, the users will be able to use an fast-growing amount of professional audio hardware through a simple Ethernet interface.
 
 ## Product Functions
 
@@ -78,38 +157,56 @@ or object class diagram, is often effective.\>
 
 ## User Classes and Characteristics
 
-\<Identify the various user classes that you anticipate will use this product.
-User classes may be differentiated based on frequency of use, subset of product
-functions used, technical expertise, security or privilege levels, educational
-level, or experience. Describe the pertinent characteristics of each user class.
-Certain requirements may pertain only to certain user classes. Distinguish the
-most important user classes for this product from those who are less important
-to satisfy.\>
+Possible users for this software :
+
+- Amateur music producers
+  - Possibly skilled in using GNU/Linux
+  - Not skilled in using AES67 networks
+- Professional audio technicians
+  - Not skilled in using GNU/Linux
+  - Possibly skilled in using AES67 networks
+- AV integration engineers
+  - Possibly skilled in using GNU/Linux
+  - Possibly skilled in using AES67 networks
+
 
 ## Operating Environment
 
-\<Describe the environment in which the software will operate, including the
-hardware platform, operating system and versions, and any other software
-components or applications with which it must peacefully coexist.\>
+#### Software :
+- GNU/Linux starting from kernel 3.0 (needed for PTP hardware timestamping)
+- JACK2 server
+
+#### Hardware :
+- Any computer able to run the software requirements
+- An IEEE 1588-2008 compatible Ethernet interface if hardware timestamping is to be used
 
 ## Design and Implementation Constraints
 
-\<Describe any items or issues that will limit the options available to the
-developers. These might include: corporate or regulatory policies; hardware
-limitations (timing requirements, memory requirements); interfaces to other
-applications; specific technologies, tools, and databases to be used; parallel
-operations; language requirements; communications protocols; security
-considerations; design conventions or programming standards (for example, if the
-customer’s organization will be responsible for maintaining the delivered
-software).\>
+- Programming language : C/C++
+- Libraries and external software to be used :
+  - Linux kernel > 3.0
+  - Audio I/O : JACK2
+  - PTP Sync : LinuxPTP
+  - RTP : **_TODO_** :
+    - jRTPlib
+    - ccRTP
+  - SIP : **_TODO_**
+  - CLI : getopt
+  - TUI : ncurses
+  - GUI : Qt
+- Version control : git
+
+
 
 ## User Documentation
 
-\<List the user documentation components (such as user manuals, on-line help,
-and tutorials) that will be delivered along with the software. Identify any
-known user documentation delivery formats or standards.\>
+- Online user manual with mobile version
+- PDF User manual exported from the online version, provided along with the software. A computer connected to an AES67 network is likely not to be connected to the Internet at the same time, so the user should be able to find the most offline resources as possible.
+- Online wiki about JACK and AES67, as both are not very well-understood concepts.
+- On the long term : Video tutorials
 
 ## Assumptions and Dependencies
+
 
 \<List any assumed factors (as opposed to known facts) that could affect the
 requirements stated in the SRS. These could include third-party or commercial
