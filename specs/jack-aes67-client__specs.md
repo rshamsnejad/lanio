@@ -1,29 +1,19 @@
 # JACK AES67 Client
 
 ## Software Requirements Specification
-### Version 1.0
 
 *Created by Robin SHAMSNEJAD on 2019-Aug-13*
-
-
-##### Revision History
-
-| **Version** | **Date** | **Comment** |
-| :----------:|:--------:|:------------|
-| 1.0 | 2019-Aug-13 | Creation of the document |
 
 # Introduction
 
 ## Purpose
 
-Proper AES67 support is not present at the moment on GNU/Linux. This project intends to fix that, by creating a software set allowing to receive and stream audio on an AES67 network.
+Proper AES67 support is not present at the moment on GNU/Linux. This project intends to fix that, by creating a software set allowing to receive and stream audio on an AES67 network in a user-freindly fashion.
 Porting to Windows and macOS is kept in mind but will be distant-future work.
 
 ## Document Conventions
 
-- CLI = Command Line Interface
-- TUI = Text-based User Interface (typically ncurses)
-- GUI = Graphical User Interface
+
 
 ## Intended Audience and Reading Suggestions
 
@@ -36,7 +26,7 @@ each reader type.\>
 
 ## Product Scope
 
-This software shall be a JACK client acting as a gateway between AES67 streams available on the network the computer is connected to, and other JACK clients. It is not intended to do any file operation, any resampling, etc. Just handing streams to the JACK server and the other way around.
+This software shall be a JACK client acting as a gateway between AES67 streams available on the network the computer is connected to, and other JACK clients. It is not intended to do any file operation, any resampling or anything else like that. Just handing streams to the JACK server and the other way around.
 
 The benefits of making it a JACK client is that it allows the user to monitor audio through a regular audio interface, as well as to use any recording or playback software that supports JACK.
 
@@ -66,7 +56,7 @@ This would have required writing an actual recording/playback software, which is
   - Unix-like CLI
 - Audio section :
   - Patching of the incoming streams
-  - Patching of outgoing streams
+  - Patching of the outgoing streams
 
 #### Mid-term goals
 
@@ -87,7 +77,7 @@ This would have required writing an actual recording/playback software, which is
 
 - Types of human interfaces :
   - Unix-like CLI
-- Full control over the backend daemon :
+- Control over the backend daemon :
   - Start/Stop/Restart
   - Kill
 - Audio section :
@@ -178,7 +168,7 @@ Possible users for this software :
 
 #### Hardware :
 - Any computer able to run the software requirements
-- An IEEE 1588-2008 compatible Ethernet interface if hardware timestamping is to be used
+- A gigabit Ethernet interface, with optional IEEE 1588-2008 support if hardware timestamping is to be used
 
 ## Design and Implementation Constraints
 
@@ -190,7 +180,9 @@ Possible users for this software :
   - RTP : **_TODO_** :
     - jRTPlib
     - ccRTP
+    - PJSIP
   - SIP : **_TODO_**
+    - PJSIP
   - CLI : getopt
   - TUI : ncurses
   - GUI : Qt
@@ -203,61 +195,47 @@ Possible users for this software :
 - Online user manual with mobile version
 - PDF User manual exported from the online version, provided along with the software. A computer connected to an AES67 network is likely not to be connected to the Internet at the same time, so the user should be able to find the most offline resources as possible.
 - Online wiki about JACK and AES67, as both are not very well-understood concepts.
+- Man pages
 - On the long term : Video tutorials
 
 ## Assumptions and Dependencies
 
+- Software timestamping with LinuxPTP is currently a problem for this application. The system clock (CLOCK_REALTIME) is synchronized to the PTP Grandmaster, which is not always in sync with the actual wall clock. For example, a Dante or RAVENNA device boots at timestamp 0 (1970-Jan-01 00:00). When the slave GNU/Linux system reverts its system clock so far back in time, multiple problems appear on reboot. Among them are a force filesystem check, and the need to reset the hardware RTC.
+  - Workarounds :
+    - The user could set up an actual Grandmaster clock slaved to UTC in his network
+    - The program could be a temporary Grandmaster to distribute wall clock time before reverting to slave (not ideal)
+  - Possible fixes :
+    - Find a way to make LinuxPTP's ptp4l use another software clock than CLOCK_REALTIME
+    - Find a way to create a virtual PHC for LinuxPTP's phc2sys to use
 
-\<List any assumed factors (as opposed to known facts) that could affect the
-requirements stated in the SRS. These could include third-party or commercial
-components that you plan to use, issues around the development or operating
-environment, or constraints. The project could be affected if these assumptions
-are incorrect, are not shared, or change. Also identify any dependencies the
-project has on external factors, such as software components that you intend to
-reuse from another project, unless they are already documented elsewhere (for
-example, in the vision and scope document or the project plan).\>
+
 
 # External Interface Requirements
 
 ## User Interfaces
 
-\<Describe the logical characteristics of each interface between the software
-product and the users. This may include sample screen images, any GUI standards
-or product family style guides that are to be followed, screen layout
-constraints, standard buttons and functions (e.g., help) that will appear on
-every screen, keyboard shortcuts, error message display standards, and so on.
-Define the software components for which a user interface is needed. Details of
-the user interface design should be documented in a separate user interface
-specification.\>
+- The TUI and GUI should be most user-friendly. Most of the users are not likely to be computer or network geeks, so they should be taken by the hand since AES67 is a pretty difficult subject.
+- The CLI should be as scriptable as possible.
 
 ## Hardware Interfaces
 
-\<Describe the logical and physical characteristics of each interface between
-the software product and the hardware components of the system. This may include
-the supported device types, the nature of the data and control interactions
-between the software and the hardware, and communication protocols to be used.\>
+- One Ethernet interface, with optional PHC if hardware timestamping is to be used
 
 ## Software Interfaces
 
-\<Describe the connections between this product and other specific software
-components (name and version), including databases, operating systems, tools,
-libraries, and integrated commercial components. Identify the data items or
-messages coming into the system and going out and describe the purpose of each.
-Describe the services needed and the nature of communications. Refer to
-documents that describe detailed application programming interface protocols.
-Identify data that will be shared across software components. If the data
-sharing mechanism must be implemented in a specific way (for example, use of a
-global data area in a multitasking operating system), specify this as an
-implementation constraint.\>
+- Linux Kernel > 3.0 for timing control and Ethernet I/O
+- LinuxPTP daemon for PTP clock sync and monitoring
+- JACK daemon for audio I/O
 
 ## Communications Interfaces
 
-\<Describe the requirements associated with any communications functions
-required by this product, including e-mail, web browser, network server
-communications protocols, electronic forms, and so on. Define any pertinent
-message formatting. Identify any communication standards that will be used, such
-as FTP or HTTP. Specify any communication security or encryption issues, data
-transfer rates, and synchronization mechanisms.\>
+- Network protocols to be used : AES67-defined, including but not limited to :
+ - UDP over IPv4
+ - PTPv2 for time sync
+ - RTP/RTCP
+ - SIP for unicast connection management
+ - SAP for Dante multicast discovery and connection management
+ - mDNS/DNS-SD for RAVENNA multicast discovery and connection management
 
 # System Features
 
@@ -358,10 +336,12 @@ that are pertinent to the project.\>
 
 # Appendix A: Glossary
 
-\<Define all the terms necessary to properly interpret the SRS, including
-acronyms and abbreviations. You may wish to build a separate glossary that spans
-multiple projects or the entire organization, and just include terms specific to
-a single project in each SRS.\>
+- RTP : Real-Time protocols
+- PTP : Precision Time protocols
+- AES67 : Audio network standard from Audio Engineering Society
+- CLI = Command Line Interface
+- TUI = Text-based User Interface (typically ncurses)
+- GUI = Graphical User Interface
 
 # Appendix B: Analysis Models
 
