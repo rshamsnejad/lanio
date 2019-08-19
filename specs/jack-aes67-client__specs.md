@@ -188,6 +188,7 @@ Possible users for this software :
   - GUI : Qt
 - Version control : git
 
+**__TODO__** : Gstreamer looks very good for audio and sync
 
 
 ## User Documentation
