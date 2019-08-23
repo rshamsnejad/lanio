@@ -1,0 +1,1 @@
+gst-launch-1.0 udpsrc port=5004 address=239.69.234.93 multicast-iface=enp0s8 caps="application/x-rtp, media=(string)audio, clock-rate=(int)48000, encoding-name=(string)L24, channels=(int)8, payload=(int)103" ! rtpbin latency=0 ! rtpL24depay ! audioconvert ! jackaudiosink name="Dante Stream" client-name="Linux AES67" connect=0
