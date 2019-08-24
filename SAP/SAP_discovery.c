@@ -76,13 +76,13 @@ int main(int argc, char *argv[])
 		else if(cnt == 0)
 			break;
 
-			printf("=== %s: %d byte SAP packet with %d byte SDP description :\n", inet_ntoa(addr.sin_addr), cnt, cnt-24);
-			printf("=== TYPE : %s\n\n", &message[8]);
-			printf("%s\n\n\n\n", &message[24]);
+		printf("=== %s: %d byte SAP packet with %d byte SDP description :\n", inet_ntoa(addr.sin_addr), cnt, cnt-24);
+		printf("=== TYPE : %s\n\n", &message[8]);
+		printf("%s\n\n\n\n", &message[24]);
 
-			// for(int i = 0 ; i < cnt ; i++)
-			// {
-			// 	printf("message[%d] : %X\t%c\n", i, message[i], message[i]);
-			// }
-		}
+		// for(int i = 0 ; i < cnt ; i++)
+		// {
+		// 	printf("message[%d] : %X\t%c\n", i, message[i], message[i]);
+		// }
+	}
 }
