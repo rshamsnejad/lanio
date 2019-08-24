@@ -10,11 +10,18 @@ Discover SAP announcement of Dante streams.
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+
+#ifndef TRUE
+	#define TRUE 1
+#endif
+
+#ifndef FALSE
+	#define FALSE 0
+#endif
 
 #define SAP_MULTICAST_PORT 9875
 #define SAP_MULTICAST_IP "239.255.255.255"
@@ -26,7 +33,7 @@ int main(int argc, char *argv[])
 	struct ip_mreq mreq;
 	char message[1024];
 
-	/* set up socket */
+	// Set up UDP/IPv4 socket
 	sap_socket = socket(AF_INET, SOCK_DGRAM, 0);
 	if(sap_socket < 0)
 	{
@@ -34,7 +41,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	bzero((char *)&addr, sizeof(addr));
+	memset((char *)&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	addr.sin_port = htons(SAP_MULTICAST_PORT);
@@ -56,7 +63,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	while (1)
+	while(TRUE)
 	{
 		memset(message, 0, sizeof(message));
 
