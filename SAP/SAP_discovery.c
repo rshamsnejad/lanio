@@ -84,15 +84,17 @@ gint main(gint argc, gchar *argv[])
 		// Reinitialize the packet string buffer
 		memset(SAPPacketString, '\0', sizeof(SAPPacketString));
 
-		SAPPacketStringBytesRead = g_socket_receive_from
-															 (
-																 SAPSocket,
-																 &SAPPacketSourceSocket,
-																 SAPPacketString,
-																 sizeof(SAPPacketString),
-																 NULL,
-																 &SAPPacketError
-															 );
+		SAPPacketStringBytesRead =
+			g_socket_receive_from
+			(
+				SAPSocket,
+				&SAPPacketSourceSocket,
+				SAPPacketString,
+				sizeof(SAPPacketString),
+				NULL,
+				&SAPPacketError
+			);
+			
 		if(SAPPacketStringBytesRead < 0)
 			ProcessGError("Error receiving SAP packet", SAPPacketError);
 		else if(SAPPacketStringBytesRead == 0) // The connection has been closed
