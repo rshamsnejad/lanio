@@ -15,7 +15,7 @@
 
 // Function prototypes
 
-void ProcessGError(gchar *ErrorMessage, GError *ErrorStruct);
+void processGError(gchar *ErrorMessage, GError *ErrorStruct);
 
 
 #endif // LINUXAES67

@@ -1,6 +1,6 @@
 #include "linux-aes67.h"
 
-void ProcessGError(gchar *ErrorMessage, GError *ErrorStruct)
+void processGError(gchar *ErrorMessage, GError *ErrorStruct)
 {
 	if(ErrorStruct)
 	{
