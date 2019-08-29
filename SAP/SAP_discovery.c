@@ -73,8 +73,21 @@ void joinMulticastGroup(GSocket **Socket, gchar *MulticastAddressString)
 	processGError("Error joining SAP Multicast group", MulticastJoinError);
 }
 
+void callback_SAPLoopIdle(GMainLoop *Loop)
+{
+	puts("-----------------------");
+	puts("Waiting for a packet...");
+	puts("-----------------------");
+
+	g_usleep(2 * G_USEC_PER_SEC);
+
+	g_main_loop_quit(Loop);
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
 
 gint main(gint argc, gchar *argv[])
 {
@@ -96,46 +109,61 @@ gint main(gint argc, gchar *argv[])
 
 	// Begin the SAP packet receiving loop
 
-	gchar SAPPacketString[SAP_PACKET_BUFFER_SIZE];
-	gssize SAPPacketStringBytesRead = 0;
-	GSocketAddress *SAPPacketSourceSocket = NULL;
-	GInetAddress *SAPPacketSourceAddress = NULL;
-	GError *SAPPacketError = NULL;
+	GMainLoop *SAPPacketReceivingLoop = g_main_loop_new(NULL, FALSE);
+	// NULL : Use default GMainContext
+	// FALSE : Don't run the loop right away
 
-	while(TRUE)
-	{
-		puts("Begin loop");
-		// Reinitialize the packet string buffer
-		memset(SAPPacketString, '\0', sizeof(SAPPacketString));
+	g_idle_add((GSourceFunc) callback_SAPLoopIdle, SAPPacketReceivingLoop);
 
-		SAPPacketStringBytesRead =
-			g_socket_receive_from
-			(
-				SAPSocket,
-				&SAPPacketSourceSocket,
-				SAPPacketString,
-				sizeof(SAPPacketString),
-				NULL,
-				&SAPPacketError
-			);
+	g_main_loop_run(SAPPacketReceivingLoop);
 
-		if(SAPPacketStringBytesRead < 0)
-			processGError("Error receiving SAP packet", SAPPacketError);
-		else if(SAPPacketStringBytesRead == 0) // The connection has been closed
-			break;
+	g_main_loop_unref(SAPPacketReceivingLoop);
 
-		SAPPacketSourceAddress = g_inet_socket_address_get_address
-														 ((GInetSocketAddress *) SAPPacketSourceSocket);
 
-		printf
-		(
-			"=== %s: %ld byte SAP packet with %ld byte SDP description :\n",
-			g_inet_address_to_string(SAPPacketSourceAddress),
-			SAPPacketStringBytesRead,
-			SAPPacketStringBytesRead-SAP_PACKET_HEADER_SIZE
-		);
-		printf("=== TYPE : %s\n\n", &SAPPacketString[SAP_PACKET_PREHEADER_SIZE]);
-		printf("%s\n\n\n\n", &SAPPacketString[SAP_PACKET_HEADER_SIZE]);
+	puts("Bye");
 
-	}
+
+
+	// gchar SAPPacketString[SAP_PACKET_BUFFER_SIZE];
+	// gssize SAPPacketStringBytesRead = 0;
+	// GSocketAddress *SAPPacketSourceSocket = NULL;
+	// GInetAddress *SAPPacketSourceAddress = NULL;
+	// GError *SAPPacketError = NULL;
+	//
+	// while(TRUE)
+	// {
+	// 	puts("Begin loop");
+	// 	// Reinitialize the packet string buffer
+	// 	memset(SAPPacketString, '\0', sizeof(SAPPacketString));
+	//
+	// 	SAPPacketStringBytesRead =
+	// 		g_socket_receive_from
+	// 		(
+	// 			SAPSocket,
+	// 			&SAPPacketSourceSocket,
+	// 			SAPPacketString,
+	// 			sizeof(SAPPacketString),
+	// 			NULL,
+	// 			&SAPPacketError
+	// 		);
+	//
+	// 	if(SAPPacketStringBytesRead < 0)
+	// 		processGError("Error receiving SAP packet", SAPPacketError);
+	// 	else if(SAPPacketStringBytesRead == 0) // The connection has been closed
+	// 		break;
+	//
+	// 	SAPPacketSourceAddress = g_inet_socket_address_get_address
+	// 													 ((GInetSocketAddress *) SAPPacketSourceSocket);
+	//
+	// 	printf
+	// 	(
+	// 		"=== %s: %ld byte SAP packet with %ld byte SDP description :\n",
+	// 		g_inet_address_to_string(SAPPacketSourceAddress),
+	// 		SAPPacketStringBytesRead,
+	// 		SAPPacketStringBytesRead-SAP_PACKET_HEADER_SIZE
+	// 	);
+	// 	printf("=== TYPE : %s\n\n", &SAPPacketString[SAP_PACKET_PREHEADER_SIZE]);
+	// 	printf("%s\n\n\n\n", &SAPPacketString[SAP_PACKET_HEADER_SIZE]);
+	//
+	// }
 }
