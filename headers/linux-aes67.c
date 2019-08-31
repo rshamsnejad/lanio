@@ -9,3 +9,11 @@ void processGError(gchar *ErrorMessage, GError *ErrorStruct)
 		exit(EXIT_FAILURE);
 	}
 }
+
+////////////////////////////////////////////////////////////////////////////////
+
+gchar* getAddressStringFromSocket(GSocketAddress *SocketAddress)
+{
+	return g_inet_address_to_string(g_inet_socket_address_get_address
+						((GInetSocketAddress *) SocketAddress));
+}

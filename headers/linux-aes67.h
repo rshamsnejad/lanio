@@ -25,6 +25,7 @@
 // === Function prototypes ===
 
 void processGError(gchar *ErrorMessage, GError *ErrorStruct);
+gchar* getAddressStringFromSocket(GSocketAddress *SocketAddress);
 
 ////////////////////////////////////////////////////////////////////////////////
 
