@@ -52,8 +52,8 @@ void bindSocket(GSocket **Socket, gchar *Address, gint Port)
 	g_socket_bind(*Socket, SocketAddress, TRUE, &SocketBindError);
 	// TRUE : Allow other UDP sockets to be bound to the same address
 
-	g_object_unref(LocalAddress);
-	g_object_unref(SocketAddress);
+	g_clear_object(&LocalAddress);
+	g_clear_object(&SocketAddress);
 
 	processGError("Error binding SAP socket", SocketBindError);
 }
@@ -71,7 +71,7 @@ void joinMulticastGroup(GSocket **Socket, gchar *MulticastAddressString)
 	// FALSE : No need for source-specific multicast
 	// NULL : Listen on all Ethernet interfaces
 
-	g_object_unref(MulticastAddress);
+	g_clear_object(&MulticastAddress);
 
 	processGError("Error joining SAP Multicast group", MulticastJoinError);
 }
@@ -106,15 +106,20 @@ gssize receivePacket(GSocket **Socket, gchar *SourceAddress,
 
 	// > StringBuffer points to the packet data at this point
 
+	gchar* AddressString = getAddressStringFromSocket(PacketSourceSocket);
+
 	g_strlcpy
 	(
 		SourceAddress,
-		getAddressStringFromSocket(PacketSourceSocket),
+		AddressString,
 		SourceAddressSize
 	);
 
 	// > SourceAddress points to the received packet's
 	// source address at this point
+
+	g_clear_object(&PacketSourceSocket);
+	g_free(AddressString);
 
 	return PacketStringBytesRead;
 }
