@@ -41,6 +41,9 @@
 #define IPV4_ADDRESS_LENGTH								16
 
 #define SDP_DATABASE_FILENAME							"./SDP.db"
+#define SDP_TABLE_NAME										"SDPDescriptions"
+
+#define MINUTE														"60"
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -72,9 +75,17 @@ void printPacket(gchar *PacketString, gssize PacketStringBytesRead,
 
 void processGError(gchar *ErrorMessage, GError *ErrorStruct);
 
-void processSQLiteError(int SQLiteErrorCode);
+void processSQLiteOpenError(int SQLiteErrorCode);
 
 gchar* getAddressStringFromSocket(GSocketAddress *SocketAddress);
+
+void createSQLiteTable(sqlite3 **SDPDatabase, gchar *TableName);
+
+void processSQLiteExecError(gint SQLiteExecErrorCode,
+															gchar *SQLiteExecErrorString);
+
+void insertStringInSQLiteTable(sqlite3 **SDPDatabase, char *TableName,
+																gchar *ColumnName, gchar *DataString);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

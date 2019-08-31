@@ -154,13 +154,110 @@ gchar* getAddressStringFromSocket(GSocketAddress *SocketAddress)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void processSQLiteError(int SQLiteErrorCode)
+void processSQLiteOpenError(gint SQLiteOpenErrorCode)
 {
-	if(SQLiteErrorCode != SQLITE_OK)
+	if(SQLiteOpenErrorCode != SQLITE_OK)
 	{
-		g_printerr("SQLite error : %s\n", sqlite3_errstr(SQLiteErrorCode));
+		const gchar *SQLiteOpenErrorString = sqlite3_errstr(SQLiteOpenErrorCode);
+		g_printerr("SQLite open error : %s\n", SQLiteOpenErrorString);
+
+		g_free((gpointer) SQLiteOpenErrorString);
 		exit(EXIT_FAILURE);
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void createSQLiteTable(sqlite3 **SDPDatabase, gchar *TableName)
+{
+	gint SQLiteExecErrorCode = 0;
+	gchar *SQLiteExecErrorString = NULL;
+
+	gchar *SQLQuery =
+	g_strdup_printf
+	(
+		"CREATE TABLE IF NOT EXISTS \
+		%s \
+		( \
+			id INT AUTO_INCREMENT, \
+			timestamp INT \
+				DEFAULT CURRENT_TIMESTAMP, \
+			sdp VARCHAR \
+		) ; "
+		"CREATE TRIGGER IF NOT EXISTS AFTER UPDATE ON %s \
+		WHEN OLD.timestamp < NEW.timestamp - (5 * " MINUTE ") \
+		BEGIN \
+		UPDATE %s SET TIMESTAMP = CURRENT_TIMESTAMP \
+		WHERE id = OLD.id ;\
+		END",
+		TableName, TableName, TableName
+	);
+
+	SQLiteExecErrorCode =
+		sqlite3_exec
+		(
+			*SDPDatabase,
+			SQLQuery,
+			NULL, NULL, // No callback function needed
+			&SQLiteExecErrorString
+		);
+
+	g_free(SQLQuery);
+
+	processSQLiteExecError(SQLiteExecErrorCode, SQLiteExecErrorString);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void processSQLiteExecError(gint SQLiteExecErrorCode,
+															gchar *SQLiteExecErrorString)
+{
+	if(SQLiteExecErrorCode != 0)
+	{
+		g_print("SQLite exec error : %s\n", SQLiteExecErrorString);
+
+		sqlite3_free(SQLiteExecErrorString);
+		exit(EXIT_FAILURE);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void insertStringInSQLiteTable(sqlite3 **SDPDatabase, char *TableName,
+																gchar *ColumnName, gchar *DataString)
+{
+	gint SQLiteExecErrorCode = 0;
+	gchar *SQLiteExecErrorString = NULL;
+
+	gchar *SQLQuery =
+	g_strdup_printf
+	(
+		"INSERT INTO %s (%s) \
+		VALUES ('%s') \
+		ON CONFLICT (%s) DO UPDATE SET timestamp = CURRENT_TIMESTAMP",
+		TableName, ColumnName, DataString, ColumnName
+	);
+
+	SQLiteExecErrorCode =
+		sqlite3_exec
+		(
+			*SDPDatabase,
+			SQLQuery,
+			NULL, NULL, // No callback function needed
+			&SQLiteExecErrorString
+		);
+
+	g_free(SQLQuery);
+
+	processSQLiteExecError(SQLiteExecErrorCode, SQLiteExecErrorString);
+
+	g_print("Inserted or updated\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
