@@ -20,3 +20,14 @@ gchar* getAddressStringFromSocket(GSocketAddress *SocketAddress)
 					 ((GInetSocketAddress *) SocketAddress)
 				 );
 }
+
+////////////////////////////////////////////////////////////////////////////////
+
+void processSQLiteError(int SQLiteErrorCode)
+{
+	if(SQLiteErrorCode != SQLITE_OK)
+	{
+		g_printerr("SQLite error : %s\n", sqlite3_errstr(SQLiteErrorCode));
+		exit(EXIT_FAILURE);
+	}
+}

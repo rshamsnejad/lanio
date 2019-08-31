@@ -16,6 +16,10 @@
 #include <glib.h>
 #include <gio/gio.h>
 
+// == SQLite headers ===
+
+#include <sqlite3.h>
+
 ////////////////////////////////////////////////////////////////////////////////
 // === Macros ===
 
@@ -25,6 +29,7 @@
 // === Function prototypes ===
 
 void processGError(gchar *ErrorMessage, GError *ErrorStruct);
+void processSQLiteError(int SQLiteErrorCode);
 gchar* getAddressStringFromSocket(GSocketAddress *SocketAddress);
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -25,6 +25,8 @@ Discover SAP announcement of Dante streams.
 
 #define IPV4_ADDRESS_LENGTH								16
 
+#define SAP_DATABASE_FILENAME							"./SDP.db"
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -163,6 +165,10 @@ gint main(gint argc, gchar *argv[])
 	joinMulticastGroup(&SAPSocket, SAP_MULTICAST_ADDRESS);
 
 
+	sqlite3 *SDPDatabase = NULL;
+
+	processSQLiteError(sqlite3_open(SAP_DATABASE_FILENAME, &SDPDatabase));
+
 	// Begin the SAP packet receiving loop
 
 	gchar SAPPacketString[SAP_PACKET_BUFFER_SIZE] = {'\0'};
@@ -195,4 +201,8 @@ gint main(gint argc, gchar *argv[])
 								SAPPacketSourceAddress);
 
 	} // End of while()
+
+	g_clear_object(&SAPSocket);
+	sqlite3_close(SDPDatabase);
+	return EXIT_SUCCESS;
 }
