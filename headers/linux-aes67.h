@@ -26,24 +26,55 @@
 
 // === Constants ===
 
-#define SAP_MULTICAST_ADDRESS							"239.255.255.255"
-#define SAP_MULTICAST_PORT								9875
+#define SAP_MULTICAST_ADDRESS						"239.255.255.255"
+#define SAP_MULTICAST_PORT							9875
 
 // SAP Socket local address is set to 0.0.0.0/<port>
 // in order to listen to all local interfaces
-#define SAP_LOCAL_ADDRESS									"0.0.0.0"
+#define SAP_LOCAL_ADDRESS								"0.0.0.0"
 
-#define SAP_PACKET_BUFFER_SIZE						1024
+#define SDP_MAX_LENGTH									2048
+#define MIME_TYPE_MAX_LENGTH						256
+#define SAP_PACKET_BUFFER_SIZE					SDP_MAX_LENGTH+MIME_TYPE_MAX_LENGTH+256
 
-#define SAP_PACKET_PREHEADER_SIZE					8
-#define SAP_PACKET_HEADER_SIZE						24
 
-#define IPV4_ADDRESS_LENGTH								16
+#define SAP_PACKET_PREHEADER_SIZE				8
+#define SAP_PACKET_HEADER_SIZE					24
 
-#define SDP_DATABASE_FILENAME							"./SDP.db"
-#define SDP_TABLE_NAME										"SDPDescriptions"
+#define SAP_SOURCE_IS_IPV4							0
+#define SAP_SOURCE_IS_IPV6							1
 
-#define MINUTE														"60"
+#define SAP_ANNOUNCEMENT_PACKET					0
+#define SAP_DELETION_PACKET							1
+
+#define IPV4_ADDRESS_LENGTH							16
+
+#define SDP_DATABASE_FILENAME						"./SDP.db"
+#define SDP_TABLE_NAME									"SDPDescriptions"
+
+#define MINUTE													"60"
+#define SQLITE_UNIX_CURRENT_TS					"(CAST(strftime('%s','now') as INT))"
+#define SQLITE_UNIX_CURRENT_TS_ESCAPED	"(CAST(strftime('%%s','now') as INT))"
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+// === Structs ===
+
+typedef struct _SAPPacket
+{
+	guint8 SAPVersion = 0;
+	gboolean AddressType = 0;
+	gboolean MessageType = 0;
+	gboolean Encryption = 0;
+	gboolean Compression = 0;
+	guint8 AuthenticationLength = 0;
+	gint16 MessageIdentifierHash = 0;
+	gint32 OriginatingSourceAddress = 0;
+	gchar PayloadType[MIME_TYPE_MAX_LENGTH] = {'\0'};
+	gchar SDPDescription[SDP_MAX_LENGTH] = {'\0'};
+} SAPPacket;
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -79,7 +110,7 @@ void processSQLiteOpenError(int SQLiteErrorCode);
 
 gchar* getAddressStringFromSocket(GSocketAddress *SocketAddress);
 
-void createSQLiteTable(sqlite3 **SDPDatabase, gchar *TableName);
+void createSDPTable(sqlite3 **SDPDatabase);
 
 void processSQLiteExecError(gint SQLiteExecErrorCode,
 															gchar *SQLiteExecErrorString);

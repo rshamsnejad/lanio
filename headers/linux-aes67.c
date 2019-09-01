@@ -170,30 +170,26 @@ void processSQLiteOpenError(gint SQLiteOpenErrorCode)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void createSQLiteTable(sqlite3 **SDPDatabase, gchar *TableName)
+void createSDPTable(sqlite3 **SDPDatabase)
 {
 	gint SQLiteExecErrorCode = 0;
 	gchar *SQLiteExecErrorString = NULL;
 
 	gchar *SQLQuery =
-	g_strdup_printf
-	(
 		"CREATE TABLE IF NOT EXISTS \
-		%s \
+		" SDP_TABLE_NAME " \
 		( \
 			id INTEGER PRIMARY KEY AUTOINCREMENT, \
 			timestamp INTEGER \
-				DEFAULT CURRENT_TIMESTAMP, \
+				DEFAULT " SQLITE_UNIX_CURRENT_TS ", \
 			sdp VARCHAR UNIQUE \
 		) ; "
-		"CREATE TRIGGER IF NOT EXISTS AFTER UPDATE ON %s \
-		WHEN OLD.timestamp < CURRENT_TIMESTAMP - (5 * " MINUTE ") \
+		"CREATE TRIGGER IF NOT EXISTS AFTER UPDATE ON " SDP_TABLE_NAME " \
+		WHEN OLD.timestamp < " SQLITE_UNIX_CURRENT_TS " - (1 * " MINUTE ") \
 		BEGIN \
-		DELETE FROM %s \
+		DELETE FROM " SDP_TABLE_NAME " \
 		WHERE id = OLD.id ;\
-		END",
-		TableName, TableName, TableName, TableName
-	);
+		END";
 
 	SQLiteExecErrorCode =
 		sqlite3_exec
@@ -203,8 +199,6 @@ void createSQLiteTable(sqlite3 **SDPDatabase, gchar *TableName)
 			NULL, NULL, // No callback function needed
 			&SQLiteExecErrorString
 		);
-
-	g_free(SQLQuery);
 
 	processSQLiteExecError(SQLiteExecErrorCode, SQLiteExecErrorString);
 }
@@ -240,7 +234,7 @@ void insertStringInSQLiteTable(sqlite3 **SDPDatabase, char *TableName,
 	(
 		"INSERT INTO %s (%s) \
 		VALUES ('%s') \
-		ON CONFLICT (%s) DO UPDATE SET timestamp = CURRENT_TIMESTAMP",
+		ON CONFLICT (%s) DO UPDATE SET timestamp = " SQLITE_UNIX_CURRENT_TS_ESCAPED,
 		TableName, ColumnName, DataString, ColumnName
 	);
 
