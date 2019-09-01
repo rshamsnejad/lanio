@@ -264,7 +264,7 @@ SAPPacket* ConvertSAPStringToStruct(gchar *SAPString)
 {
 	SAPPacket ReturnPacket;
 
-	// Refer to RFC 2974 for details on the header bits extracted below
+	// *** Refer to RFC 2974 for details on the header parts extracted below ***
 
 	// 8 first bits are the flags
 	guint8 PacketFlags = SAPString[0];
