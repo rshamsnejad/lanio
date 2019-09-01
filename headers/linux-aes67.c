@@ -60,7 +60,7 @@ void joinMulticastGroup(GSocket **Socket, gchar *MulticastAddressString)
 ////////////////////////////////////////////////////////////////////////////////
 
 gssize receivePacket(GSocket **Socket, gchar *SourceAddress,
-											gssize SourceAddressSize, gchar *StringBuffer,
+											gssize SourceAddressSize, guchar *StringBuffer,
 												gssize StringBufferSize)
 {
 	// Reinitialize the packet string buffer
@@ -109,7 +109,7 @@ gssize receivePacket(GSocket **Socket, gchar *SourceAddress,
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void printPacket(gchar *PacketString, gssize PacketStringBytesRead,
+void printPacket(guchar *PacketString, gssize PacketStringBytesRead,
 									gchar *PacketSourceAddress)
 {
 	g_print
@@ -226,7 +226,7 @@ void processSQLiteExecError(gint SQLiteExecErrorCode,
 ////////////////////////////////////////////////////////////////////////////////
 
 void insertStringInSQLiteTable(sqlite3 **SDPDatabase, char *TableName,
-																gchar *ColumnName, gchar *DataString)
+																gchar *ColumnName, guchar *DataString)
 {
 	gint SQLiteExecErrorCode = 0;
 	gchar *SQLiteExecErrorString = NULL;
@@ -259,3 +259,77 @@ void insertStringInSQLiteTable(sqlite3 **SDPDatabase, char *TableName,
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+SAPPacket* ConvertSAPStringToStruct(gchar *SAPString)
+{
+	SAPPacket ReturnPacket;
+
+	// Refer to RFC 2974 for details on the header bits extracted below
+
+	// 8 first bits are the flags
+	guint8 PacketFlags = SAPString[0];
+
+	// First two bits are useless...									 0
+	// Because reasons.																 1
+	ReturnPacket.SAPVersion 		= GET_BIT(PacketFlags, 2);
+	ReturnPacket.AddressType 		= GET_BIT(PacketFlags, 3);
+	// Fifth bit is reserved, therefore useless to us. 4
+	ReturnPacket.MessageType 		=	GET_BIT(PacketFlags, 5);
+	ReturnPacket.Encryption 		= GET_BIT(PacketFlags, 6);
+	ReturnPacket.Compression 		= GET_BIT(PacketFlags, 7);
+
+	// 8 following bits give an unsigned integer
+	// for the authentication header length
+	ReturnPacket.AuthenticationLength = SAPString[1];
+
+	// 16 following bits are a unique hash attached to the stream
+	ReturnPacket.MessageIdentifierHash =
+		(guint16) ConcatenateBytes(SAPString, 2, 3);
+	// ReturnPacket.MessageIdentifierHash = (SAPString[2] << 8) | SAPString[3];
+
+	// If AddressType is IPv4, the following 32 bits give the IPv4 address.
+	// Otherwise if it's IPv6, the following 128 bits give the IPv6 address.
+	// But since only IPv4 is supported for now, we will not consider IPv6.
+	// An error will be yielded when checking this struct if it comes with IPv6.
+	gsize AddressEndingByte = 0;
+
+	if(ReturnPacket.AddressType == SAP_SOURCE_IS_IPV4)
+		AddressEndingByte = 7;
+	else if(ReturnPacket.AddressType == SAP_SOURCE_IS_IPV6)
+		AddressEndingByte = 19;
+
+	ReturnPacket.OriginatingSourceAddress =
+		ConcatenateBytes(SAPString, 4, AddressEndingByte);
+
+	// Authentication header is skipped, because it does not look like it's
+	// used in AES67 SAP announcements.
+
+	gsize PayloadTypeStartIndex =
+		AddressEndingByte + ReturnPacket.AuthenticationLength + 1;
+
+	ReturnPacket.PayloadType = g_strdup(&SAPString[PayloadTypeStartIndex]);
+
+	ReturnPacket.SDPDescription =
+			g_strdup(&SAPString[strlen(ReturnPacket.PayloadType)]);
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+guint32 ConcatenateBytes(guint8 *IntArray, gsize Start, gsize End)
+{
+	guint32 ReturnValue = 0;
+
+	for
+	(
+		gsize index = End, shift = 0; // Start by shifting the LSBs by 0 bits
+		index >= Start;
+		index--, shift += 8)
+	{
+		ReturnValue |= (IntArray[index] << shift);
+	}
+
+	return ReturnValue;
+}

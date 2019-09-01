@@ -45,8 +45,8 @@ gint main(gint argc, gchar *argv[])
 
 	// Begin the SAP packet receiving loop
 
-	gchar SAPPacketString[SAP_PACKET_BUFFER_SIZE] = {'\0'};
-	gssize SAPPacketStringBytesRead = 0;
+	guchar SAPPacketBuffer[SAP_PACKET_BUFFER_SIZE] = {'\0'};
+	gssize SAPPacketBufferBytesRead = 0;
 	gchar SAPPacketSourceAddress[IPV4_ADDRESS_LENGTH] = {'\0'};
 
 
@@ -54,28 +54,28 @@ gint main(gint argc, gchar *argv[])
 	{
 		// puts("Begin loop");
 
-		SAPPacketStringBytesRead =
+		SAPPacketBufferBytesRead =
 			receivePacket
 			(
 				&SAPSocket,
 				SAPPacketSourceAddress,
 				ARRAY_SIZE(SAPPacketSourceAddress),
-				SAPPacketString,
-				ARRAY_SIZE(SAPPacketString)
+				SAPPacketBuffer,
+				ARRAY_SIZE(SAPPacketBuffer)
 			);
 
-		if(SAPPacketStringBytesRead <= 0) // The connection has been reset
+		if(SAPPacketBufferBytesRead <= 0) // The connection has been reset
 		{
 			g_print("Terminated\n");
 			break;
 		}
 
-		printPacket(SAPPacketString,
-								SAPPacketStringBytesRead,
+		printPacket(SAPPacketBuffer,
+								SAPPacketBufferBytesRead,
 								SAPPacketSourceAddress);
 
 		insertStringInSQLiteTable(&SDPDatabase, SAP_TABLE_NAME, "sdp",
-																&SAPPacketString[SAP_PACKET_HEADER_SIZE]);
+																&SAPPacketBuffer[SAP_PACKET_HEADER_SIZE]);
 
 	} // End of while()
 

@@ -35,6 +35,7 @@
 
 #define SDP_MAX_LENGTH									2048
 #define MIME_TYPE_MAX_LENGTH						256
+#define SAP_IDENTIFIER_HASH_LENGTH			16
 #define SAP_PACKET_BUFFER_SIZE					SDP_MAX_LENGTH+MIME_TYPE_MAX_LENGTH+256
 
 
@@ -63,6 +64,7 @@
 // === Macros ===
 
 #define ARRAY_SIZE(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
+
 #define BYTE_TO_BINARY_STRING_PATTERN "%c%c%c%c%c%c%c%c"
 #define BYTE_TO_BINARY_STRING(byte)  \
   (byte & 0x80 ? '1' : '0'), \
@@ -73,6 +75,8 @@
   (byte & 0x04 ? '1' : '0'), \
   (byte & 0x02 ? '1' : '0'), \
   (byte & 0x01 ? '1' : '0')
+
+#define GET_BIT(number, n) ((number >> n) & 1)
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -88,10 +92,11 @@ typedef struct _SAPPacket
 	gboolean Encryption;
 	gboolean Compression;
 	guint8 AuthenticationLength;
-	gint16 MessageIdentifierHash;
-	gint32 OriginatingSourceAddress;
-	gchar PayloadType[MIME_TYPE_MAX_LENGTH];
-	gchar SDPDescription[SDP_MAX_LENGTH];
+	guint16 MessageIdentifierHash;
+	// gchar MessageIdentifierHash[SAP_IDENTIFIER_HASH_LENGTH];
+	guint32 OriginatingSourceAddress;
+	gchar *PayloadType; //[MIME_TYPE_MAX_LENGTH];
+	gchar *SDPDescription; //[SDP_MAX_LENGTH];
 } SAPPacket;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -108,10 +113,10 @@ void bindSocket(GSocket **Socket, gchar *Address, gint Port);
 void joinMulticastGroup(GSocket **Socket, gchar *MulticastAddressString);
 
 gssize receivePacket(GSocket **Socket, gchar *SourceAddress,
-											gssize SourceAddressSize, gchar *StringBuffer,
+											gssize SourceAddressSize, guchar *StringBuffer,
 												gssize StringBufferSize);
 
-void printPacket(gchar *PacketString, gssize PacketStringBytesRead,
+void printPacket(guchar *PacketString, gssize PacketStringBytesRead,
 									gchar *PacketSourceAddress);
 
 void processGError(gchar *ErrorMessage, GError *ErrorStruct);
@@ -126,7 +131,11 @@ void processSQLiteExecError(gint SQLiteExecErrorCode,
 															gchar *SQLiteExecErrorString);
 
 void insertStringInSQLiteTable(sqlite3 **SDPDatabase, char *TableName,
-																gchar *ColumnName, gchar *DataString);
+																gchar *ColumnName, guchar *DataString);
+
+SAPPacket* ConvertSAPStringToStruct(gchar *SAPString);
+
+guint32 ConcatenateBytes(guint8 *IntArray, gsize Start, gsize End);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
