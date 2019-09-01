@@ -181,18 +181,18 @@ void createSQLiteTable(sqlite3 **SDPDatabase, gchar *TableName)
 		"CREATE TABLE IF NOT EXISTS \
 		%s \
 		( \
-			id INT AUTO_INCREMENT, \
-			timestamp INT \
+			id INTEGER PRIMARY KEY AUTOINCREMENT, \
+			timestamp INTEGER \
 				DEFAULT CURRENT_TIMESTAMP, \
-			sdp VARCHAR \
+			sdp VARCHAR UNIQUE \
 		) ; "
 		"CREATE TRIGGER IF NOT EXISTS AFTER UPDATE ON %s \
-		WHEN OLD.timestamp < NEW.timestamp - (5 * " MINUTE ") \
+		WHEN OLD.timestamp < CURRENT_TIMESTAMP - (5 * " MINUTE ") \
 		BEGIN \
-		UPDATE %s SET TIMESTAMP = CURRENT_TIMESTAMP \
+		DELETE FROM %s \
 		WHERE id = OLD.id ;\
 		END",
-		TableName, TableName, TableName
+		TableName, TableName, TableName, TableName
 	);
 
 	SQLiteExecErrorCode =
@@ -257,7 +257,7 @@ void insertStringInSQLiteTable(sqlite3 **SDPDatabase, char *TableName,
 
 	processSQLiteExecError(SQLiteExecErrorCode, SQLiteExecErrorString);
 
-	g_print("Inserted or updated\n");
+	g_print("Inserted or updated\n\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////

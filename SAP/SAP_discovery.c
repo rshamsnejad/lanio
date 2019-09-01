@@ -34,10 +34,14 @@ gint main(gint argc, gchar *argv[])
 
 	joinMulticastGroup(&SAPSocket, SAP_MULTICAST_ADDRESS);
 
-
+	// Open the SDP Database file
 	sqlite3 *SDPDatabase = NULL;
+	processSQLiteOpenError
+	(
+		sqlite3_open(SDP_DATABASE_FILENAME, &SDPDatabase)
+	);
 
-	processSQLiteError(sqlite3_open(SDP_DATABASE_FILENAME, &SDPDatabase));
+	createSQLiteTable(&SDPDatabase, SDP_TABLE_NAME);
 
 	// Begin the SAP packet receiving loop
 
@@ -69,6 +73,9 @@ gint main(gint argc, gchar *argv[])
 		printPacket(SAPPacketString,
 								SAPPacketStringBytesRead,
 								SAPPacketSourceAddress);
+
+		insertStringInSQLiteTable(&SDPDatabase, SDP_TABLE_NAME, "sdp",
+													&SAPPacketString[SAP_PACKET_HEADER_SIZE]);
 
 	} // End of while()
 
