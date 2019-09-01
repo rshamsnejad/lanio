@@ -119,6 +119,8 @@ void printPacket(gchar *PacketString, gssize PacketStringBytesRead,
 		PacketStringBytesRead,
 		PacketStringBytesRead-SAP_PACKET_HEADER_SIZE
 	);
+	g_print("=== FLAGS : " BYTE_TO_BINARY_STRING_PATTERN "\n",
+						BYTE_TO_BINARY_STRING(PacketString[0]));
 	g_print("=== TYPE : %s\n\n", &PacketString[SAP_PACKET_PREHEADER_SIZE]);
 	g_print("%s\n\n\n\n", &PacketString[SAP_PACKET_HEADER_SIZE]);
 }
