@@ -75,7 +75,7 @@ gint main(gint argc, gchar *argv[])
 								SAPPacketSourceAddress);
 
 		insertStringInSQLiteTable(&SDPDatabase, SDP_TABLE_NAME, "sdp",
-													&SAPPacketString[SAP_PACKET_HEADER_SIZE]);
+																&SAPPacketString[SAP_PACKET_HEADER_SIZE]);
 
 	} // End of while()
 
