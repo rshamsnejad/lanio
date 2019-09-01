@@ -170,24 +170,24 @@ void processSQLiteOpenError(gint SQLiteOpenErrorCode)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void createSDPTable(sqlite3 **SDPDatabase)
+void createSAPTable(sqlite3 **SDPDatabase)
 {
 	gint SQLiteExecErrorCode = 0;
 	gchar *SQLiteExecErrorString = NULL;
 
 	gchar *SQLQuery =
 		"CREATE TABLE IF NOT EXISTS \
-		" SDP_TABLE_NAME " \
+		" SAP_TABLE_NAME " \
 		( \
 			id INTEGER PRIMARY KEY AUTOINCREMENT, \
 			timestamp INTEGER \
 				DEFAULT " SQLITE_UNIX_CURRENT_TS ", \
 			sdp VARCHAR UNIQUE \
 		) ; "
-		"CREATE TRIGGER IF NOT EXISTS AFTER UPDATE ON " SDP_TABLE_NAME " \
+		"CREATE TRIGGER IF NOT EXISTS AFTER UPDATE ON " SAP_TABLE_NAME " \
 		WHEN OLD.timestamp < " SQLITE_UNIX_CURRENT_TS " - (1 * " MINUTE ") \
 		BEGIN \
-		DELETE FROM " SDP_TABLE_NAME " \
+		DELETE FROM " SAP_TABLE_NAME " \
 		WHERE id = OLD.id ;\
 		END";
 

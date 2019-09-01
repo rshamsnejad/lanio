@@ -50,7 +50,7 @@
 #define IPV4_ADDRESS_LENGTH							16
 
 #define SDP_DATABASE_FILENAME						"./SDP.db"
-#define SDP_TABLE_NAME									"SDPDescriptions"
+#define SAP_TABLE_NAME									"SAPDiscovery"
 
 #define MINUTE													"60"
 #define SQLITE_UNIX_CURRENT_TS					"(CAST(strftime('%s','now') as INT))"
@@ -110,7 +110,7 @@ void processSQLiteOpenError(int SQLiteErrorCode);
 
 gchar* getAddressStringFromSocket(GSocketAddress *SocketAddress);
 
-void createSDPTable(sqlite3 **SDPDatabase);
+void createSAPTable(sqlite3 **SDPDatabase);
 
 void processSQLiteExecError(gint SQLiteExecErrorCode,
 															gchar *SQLiteExecErrorString);

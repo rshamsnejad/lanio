@@ -41,7 +41,7 @@ gint main(gint argc, gchar *argv[])
 		sqlite3_open(SDP_DATABASE_FILENAME, &SDPDatabase)
 	);
 
-	createSDPTable(&SDPDatabase);
+	createSAPTable(&SDPDatabase);
 
 	// Begin the SAP packet receiving loop
 
@@ -74,7 +74,7 @@ gint main(gint argc, gchar *argv[])
 								SAPPacketStringBytesRead,
 								SAPPacketSourceAddress);
 
-		insertStringInSQLiteTable(&SDPDatabase, SDP_TABLE_NAME, "sdp",
+		insertStringInSQLiteTable(&SDPDatabase, SAP_TABLE_NAME, "sdp",
 																&SAPPacketString[SAP_PACKET_HEADER_SIZE]);
 
 	} // End of while()
