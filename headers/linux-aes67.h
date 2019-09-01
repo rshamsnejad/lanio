@@ -64,16 +64,16 @@
 
 typedef struct _SAPPacket
 {
-	guint8 SAPVersion = 0;
-	gboolean AddressType = 0;
-	gboolean MessageType = 0;
-	gboolean Encryption = 0;
-	gboolean Compression = 0;
-	guint8 AuthenticationLength = 0;
-	gint16 MessageIdentifierHash = 0;
-	gint32 OriginatingSourceAddress = 0;
-	gchar PayloadType[MIME_TYPE_MAX_LENGTH] = {'\0'};
-	gchar SDPDescription[SDP_MAX_LENGTH] = {'\0'};
+	guint8 SAPVersion;
+	gboolean AddressType;
+	gboolean MessageType;
+	gboolean Encryption;
+	gboolean Compression;
+	guint8 AuthenticationLength;
+	gint16 MessageIdentifierHash;
+	gint32 OriginatingSourceAddress;
+	gchar PayloadType[MIME_TYPE_MAX_LENGTH];
+	gchar SDPDescription[SDP_MAX_LENGTH];
 } SAPPacket;
 
 ////////////////////////////////////////////////////////////////////////////////
