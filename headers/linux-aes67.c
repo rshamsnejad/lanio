@@ -60,7 +60,7 @@ void joinMulticastGroup(GSocket **Socket, gchar *MulticastAddressString)
 ////////////////////////////////////////////////////////////////////////////////
 
 gssize receivePacket(GSocket **Socket, gchar *SourceAddress,
-											gssize SourceAddressSize, guchar *StringBuffer,
+											gssize SourceAddressSize, gchar *StringBuffer,
 												gssize StringBufferSize)
 {
 	// Reinitialize the packet string buffer
@@ -109,7 +109,7 @@ gssize receivePacket(GSocket **Socket, gchar *SourceAddress,
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void printPacket(guchar *PacketString, gssize PacketStringBytesRead,
+void printPacket(gchar *PacketString, gssize PacketStringBytesRead,
 									gchar *PacketSourceAddress)
 {
 	g_print
@@ -226,7 +226,7 @@ void processSQLiteExecError(gint SQLiteExecErrorCode,
 ////////////////////////////////////////////////////////////////////////////////
 
 void insertStringInSQLiteTable(sqlite3 **SDPDatabase, char *TableName,
-																gchar *ColumnName, guchar *DataString)
+																gchar *ColumnName, gchar *DataString)
 {
 	gint SQLiteExecErrorCode = 0;
 	gchar *SQLiteExecErrorString = NULL;
@@ -284,7 +284,7 @@ SAPPacket* convertSAPStringToStruct(gchar *SAPString)
 
 	// 16 following bits are a unique hash attached to the stream
 	ReturnPacket->MessageIdentifierHash =
-		(guint16) concatenateBytes(SAPString, 2, 3);
+		(guint16) concatenateBytes((guint8 *) SAPString, 2, 3);
 	// ReturnPacket->MessageIdentifierHash = (SAPString[2] << 8) | SAPString[3];
 
 	// If AddressType is IPv4, the following 32 bits give the IPv4 address.
@@ -299,7 +299,7 @@ SAPPacket* convertSAPStringToStruct(gchar *SAPString)
 		AddressEndingByte = 19;
 
 	ReturnPacket->OriginatingSourceAddress =
-		concatenateBytes(SAPString, 4, AddressEndingByte);
+		concatenateBytes((guint8 *) SAPString, 4, AddressEndingByte);
 
 	// Authentication header is skipped, because it does not look like it's
 	// used in AES67 SAP announcements.

@@ -45,7 +45,7 @@ gint main(gint argc, gchar *argv[])
 
 	// Begin the SAP packet receiving loop
 
-	guchar SAPPacketBuffer[SAP_PACKET_BUFFER_SIZE] = {'\0'};
+	gchar SAPPacketBuffer[SAP_PACKET_BUFFER_SIZE] = {'\0'};
 	gssize SAPPacketBufferBytesRead = 0;
 	gchar SAPPacketSourceAddress[IPV4_ADDRESS_LENGTH] = {'\0'};
 

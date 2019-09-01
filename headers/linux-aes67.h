@@ -113,10 +113,10 @@ void bindSocket(GSocket **Socket, gchar *Address, gint Port);
 void joinMulticastGroup(GSocket **Socket, gchar *MulticastAddressString);
 
 gssize receivePacket(GSocket **Socket, gchar *SourceAddress,
-											gssize SourceAddressSize, guchar *StringBuffer,
+											gssize SourceAddressSize, gchar *StringBuffer,
 												gssize StringBufferSize);
 
-void printPacket(guchar *PacketString, gssize PacketStringBytesRead,
+void printPacket(gchar *PacketString, gssize PacketStringBytesRead,
 									gchar *PacketSourceAddress);
 
 void processGError(gchar *ErrorMessage, GError *ErrorStruct);
@@ -131,7 +131,7 @@ void processSQLiteExecError(gint SQLiteExecErrorCode,
 															gchar *SQLiteExecErrorString);
 
 void insertStringInSQLiteTable(sqlite3 **SDPDatabase, char *TableName,
-																gchar *ColumnName, guchar *DataString);
+																gchar *ColumnName, gchar *DataString);
 
 SAPPacket* convertSAPStringToStruct(gchar *SAPString);
 
