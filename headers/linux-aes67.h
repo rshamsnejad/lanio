@@ -133,9 +133,11 @@ void processSQLiteExecError(gint SQLiteExecErrorCode,
 void insertStringInSQLiteTable(sqlite3 **SDPDatabase, char *TableName,
 																gchar *ColumnName, guchar *DataString);
 
-SAPPacket* ConvertSAPStringToStruct(gchar *SAPString);
+SAPPacket* convertSAPStringToStruct(gchar *SAPString);
 
-guint32 ConcatenateBytes(guint8 *IntArray, gsize Start, gsize End);
+guint32 concatenateBytes(guint8 *IntArray, gsize Start, gsize End);
+
+void freeSAPPacket(SAPPacket *SAPStructToFree);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

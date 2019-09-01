@@ -260,9 +260,9 @@ void insertStringInSQLiteTable(sqlite3 **SDPDatabase, char *TableName,
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-SAPPacket* ConvertSAPStringToStruct(gchar *SAPString)
+SAPPacket* convertSAPStringToStruct(gchar *SAPString)
 {
-	SAPPacket ReturnPacket;
+	SAPPacket *ReturnPacket = g_malloc0(sizeof(SAPPacket));
 
 	// *** Refer to RFC 2974 for details on the header parts extracted below ***
 
@@ -271,21 +271,21 @@ SAPPacket* ConvertSAPStringToStruct(gchar *SAPString)
 
 	// First two bits are useless...									 0
 	// Because reasons.																 1
-	ReturnPacket.SAPVersion 		= GET_BIT(PacketFlags, 2);
-	ReturnPacket.AddressType 		= GET_BIT(PacketFlags, 3);
+	ReturnPacket->SAPVersion 		= GET_BIT(PacketFlags, 2);
+	ReturnPacket->AddressType 	= GET_BIT(PacketFlags, 3);
 	// Fifth bit is reserved, therefore useless to us. 4
-	ReturnPacket.MessageType 		=	GET_BIT(PacketFlags, 5);
-	ReturnPacket.Encryption 		= GET_BIT(PacketFlags, 6);
-	ReturnPacket.Compression 		= GET_BIT(PacketFlags, 7);
+	ReturnPacket->MessageType 	=	GET_BIT(PacketFlags, 5);
+	ReturnPacket->Encryption 		= GET_BIT(PacketFlags, 6);
+	ReturnPacket->Compression 	= GET_BIT(PacketFlags, 7);
 
 	// 8 following bits give an unsigned integer
 	// for the authentication header length
-	ReturnPacket.AuthenticationLength = SAPString[1];
+	ReturnPacket->AuthenticationLength = SAPString[1];
 
 	// 16 following bits are a unique hash attached to the stream
-	ReturnPacket.MessageIdentifierHash =
-		(guint16) ConcatenateBytes(SAPString, 2, 3);
-	// ReturnPacket.MessageIdentifierHash = (SAPString[2] << 8) | SAPString[3];
+	ReturnPacket->MessageIdentifierHash =
+		(guint16) concatenateBytes(SAPString, 2, 3);
+	// ReturnPacket->MessageIdentifierHash = (SAPString[2] << 8) | SAPString[3];
 
 	// If AddressType is IPv4, the following 32 bits give the IPv4 address.
 	// Otherwise if it's IPv6, the following 128 bits give the IPv6 address.
@@ -293,32 +293,33 @@ SAPPacket* ConvertSAPStringToStruct(gchar *SAPString)
 	// An error will be yielded when checking this struct if it comes with IPv6.
 	gsize AddressEndingByte = 0;
 
-	if(ReturnPacket.AddressType == SAP_SOURCE_IS_IPV4)
+	if(ReturnPacket->AddressType == SAP_SOURCE_IS_IPV4)
 		AddressEndingByte = 7;
-	else if(ReturnPacket.AddressType == SAP_SOURCE_IS_IPV6)
+	else if(ReturnPacket->AddressType == SAP_SOURCE_IS_IPV6)
 		AddressEndingByte = 19;
 
-	ReturnPacket.OriginatingSourceAddress =
-		ConcatenateBytes(SAPString, 4, AddressEndingByte);
+	ReturnPacket->OriginatingSourceAddress =
+		concatenateBytes(SAPString, 4, AddressEndingByte);
 
 	// Authentication header is skipped, because it does not look like it's
 	// used in AES67 SAP announcements.
 
 	gsize PayloadTypeStartIndex =
-		AddressEndingByte + ReturnPacket.AuthenticationLength + 1;
+		AddressEndingByte + ReturnPacket->AuthenticationLength + 1;
 
-	ReturnPacket.PayloadType = g_strdup(&SAPString[PayloadTypeStartIndex]);
+	ReturnPacket->PayloadType = g_strdup(&SAPString[PayloadTypeStartIndex]);
 
-	ReturnPacket.SDPDescription =
-			g_strdup(&SAPString[strlen(ReturnPacket.PayloadType)]);
+	ReturnPacket->SDPDescription =
+			g_strdup(&SAPString[strlen(ReturnPacket->PayloadType)]);
 
+	return ReturnPacket;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-guint32 ConcatenateBytes(guint8 *IntArray, gsize Start, gsize End)
+guint32 concatenateBytes(guint8 *IntArray, gsize Start, gsize End)
 {
 	guint32 ReturnValue = 0;
 
@@ -328,8 +329,21 @@ guint32 ConcatenateBytes(guint8 *IntArray, gsize Start, gsize End)
 		index >= Start;
 		index--, shift += 8)
 	{
+		// Shift the current byte, then append
 		ReturnValue |= (IntArray[index] << shift);
 	}
 
 	return ReturnValue;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void freeSAPPacket(SAPPacket *SAPStructToFree)
+{
+	g_free(SAPStructToFree->PayloadType);
+	g_free(SAPStructToFree->SDPDescription);
+
+	g_free(SAPStructToFree);
 }
