@@ -309,7 +309,11 @@ SAPPacket* convertSAPStringToStruct(gchar *SAPString)
     ReturnPacket->PayloadType = g_strdup(&SAPString[PayloadTypeStartIndex]);
 
     ReturnPacket->SDPDescription =
-        g_strdup(&SAPString[strlen(ReturnPacket->PayloadType)]);
+        g_strdup
+        (
+            &SAPString
+            [PayloadTypeStartIndex + strlen(ReturnPacket->PayloadType)]
+        );
 
     return ReturnPacket;
 }
