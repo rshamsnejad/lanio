@@ -77,7 +77,7 @@
     (byte & 0x02 ? '1' : '0'), \
     (byte & 0x01 ? '1' : '0')
 
-#define GET_BIT(number, n) ((number >> n) & 1)
+#define GET_BIT(number, n) ((number >> n) & 1 ? 1 : 0)
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -95,7 +95,7 @@ typedef struct _SAPPacket
     guint8 AuthenticationLength;
     guint16 MessageIdentifierHash;
     // gchar MessageIdentifierHash[SAP_IDENTIFIER_HASH_LENGTH];
-    guint32 OriginatingSourceAddress;
+    GInetAddress *OriginatingSourceAddress;
     gchar *PayloadType; //[MIME_TYPE_MAX_LENGTH];
     gchar *SDPDescription; //[SDP_MAX_LENGTH];
 } SAPPacket;
@@ -117,7 +117,7 @@ gssize receivePacket(GSocket **Socket, gchar *SourceAddress,
                         gssize SourceAddressSize, gchar *StringBuffer,
                             gssize StringBufferSize);
 
-void printPacket(gchar *PacketString, gssize PacketStringBytesRead,
+void printPacketUgly(gchar *PacketString, gssize PacketStringBytesRead,
                     gchar *PacketSourceAddress);
 
 void processGError(gchar *ErrorMessage, GError *ErrorStruct);
@@ -139,6 +139,8 @@ SAPPacket* convertSAPStringToStruct(gchar *SAPString);
 guint32 concatenateBytes(guint8 *IntArray, gsize Start, gsize End);
 
 void freeSAPPacket(SAPPacket *SAPStructToFree);
+
+void printSAPPacket(SAPPacket *PacketToPrint);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

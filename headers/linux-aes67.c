@@ -109,7 +109,7 @@ gssize receivePacket(GSocket **Socket, gchar *SourceAddress,
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void printPacket(gchar *PacketString, gssize PacketStringBytesRead,
+void printPacketUgly(gchar *PacketString, gssize PacketStringBytesRead,
                     gchar *PacketSourceAddress)
 {
     g_print
@@ -268,14 +268,14 @@ SAPPacket* convertSAPStringToStruct(gchar *SAPString)
     // 8 first bits are the flags
     guint8 PacketFlags = SAPString[0];
 
-    // First two bits are useless...                   0
-    // Because reasons.                                1
-    ReturnPacket->SAPVersion    = GET_BIT(PacketFlags, 2);
-    ReturnPacket->AddressType   = GET_BIT(PacketFlags, 3);
-    // Fifth bit is reserved, therefore useless to us. 4
-    ReturnPacket->MessageType   = GET_BIT(PacketFlags, 5);
-    ReturnPacket->Encryption    = GET_BIT(PacketFlags, 6);
-    ReturnPacket->Compression   = GET_BIT(PacketFlags, 7);
+    // First two bits are useless...                   7
+    // Because reasons.                                6
+    ReturnPacket->SAPVersion    = GET_BIT(PacketFlags, 5);
+    ReturnPacket->AddressType   = GET_BIT(PacketFlags, 4);
+    // Fifth bit is reserved, therefore useless to us. 3
+    ReturnPacket->MessageType   = GET_BIT(PacketFlags, 2);
+    ReturnPacket->Encryption    = GET_BIT(PacketFlags, 1);
+    ReturnPacket->Compression   = GET_BIT(PacketFlags, 0);
 
     // 8 following bits give an unsigned integer
     // for the authentication header length
@@ -291,28 +291,37 @@ SAPPacket* convertSAPStringToStruct(gchar *SAPString)
     // But since only IPv4 is supported for now, we will not consider IPv6.
     // An error will be yielded when checking this struct if it comes with IPv6.
     gsize AddressEndingByte = 0;
+    GSocketFamily AddressFamily;
 
     if(ReturnPacket->AddressType == SAP_SOURCE_IS_IPV4)
+    {
         AddressEndingByte = 7;
+        AddressFamily = G_SOCKET_FAMILY_IPV4;
+    }
     else if(ReturnPacket->AddressType == SAP_SOURCE_IS_IPV6)
+    {
         AddressEndingByte = 19;
+        AddressFamily = G_SOCKET_FAMILY_IPV6;
+    }
 
     ReturnPacket->OriginatingSourceAddress =
-        concatenateBytes((guint8 *) SAPString, 4, AddressEndingByte);
+        g_inet_address_new_from_bytes((guint8*) &SAPString[4], AddressFamily);
 
     // Authentication header is skipped, because it does not look like it's
     // used in AES67 SAP announcements.
 
+    // Payload type is a MIME type, "application/sdp" in our case
     gsize PayloadTypeStartIndex =
         AddressEndingByte + ReturnPacket->AuthenticationLength + 1;
 
     ReturnPacket->PayloadType = g_strdup(&SAPString[PayloadTypeStartIndex]);
 
+    // Now we can gather the actual SDP description
     ReturnPacket->SDPDescription =
         g_strdup
         (
             &SAPString
-            [PayloadTypeStartIndex + strlen(ReturnPacket->PayloadType)]
+            [PayloadTypeStartIndex + strlen(ReturnPacket->PayloadType) + 1]
         );
 
     return ReturnPacket;
@@ -346,8 +355,52 @@ guint32 concatenateBytes(guint8 *IntArray, gsize Start, gsize End)
 
 void freeSAPPacket(SAPPacket *SAPStructToFree)
 {
+    g_object_unref(SAPStructToFree->OriginatingSourceAddress);
     g_free(SAPStructToFree->PayloadType);
     g_free(SAPStructToFree->SDPDescription);
 
     g_free(SAPStructToFree);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void printSAPPacket(SAPPacket *PacketToPrint)
+{
+    g_print("=== BEGIN RECEIVED SAP PACKET ===\n");
+
+    g_print("SAP Version : \t\t\t%d\n", PacketToPrint->SAPVersion);
+    g_print
+    (
+        "Address Type : \t\t\t%s\n",
+        PacketToPrint->AddressType ==
+            SAP_SOURCE_IS_IPV4 ? "IPv4" : "IPv6"
+    );
+    g_print
+    (
+        "Message Type : \t\t\t%s\n",
+        PacketToPrint->MessageType ==
+            SAP_ANNOUNCEMENT_PACKET ? "Announcement" : "Deletion"
+    );
+    g_print("Encryption : \t\t\t%s\n",
+                PacketToPrint->Encryption ? "Encrypted" : "Not encrypted");
+    g_print("Compression : \t\t\t%s\n",
+                PacketToPrint->Compression ? "Compressed" : "Not compressed");
+    g_print("Authentication header length : \t%d\n",
+                PacketToPrint->AuthenticationLength);
+    g_print("Identifier Hash : \t\t%x\n", PacketToPrint->MessageIdentifierHash);
+    g_print
+    (
+        "Sender IP : \t\t\t%s\n",
+        g_inet_address_to_string(PacketToPrint->OriginatingSourceAddress)
+    );
+    g_print("Payload type : \t\t\t%s\n", PacketToPrint->PayloadType);
+    g_print("SDP description :\n%s\n", PacketToPrint->SDPDescription);
+
+    g_print("\n\n");
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////

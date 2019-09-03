@@ -49,6 +49,7 @@ gint main(gint argc, gchar *argv[])
     gssize SAPPacketBufferBytesRead = 0;
     gchar SAPPacketSourceAddress[IPV4_ADDRESS_LENGTH] = {'\0'};
 
+    SAPPacket *ReceivedSAPPAcket = NULL;
 
     while(TRUE)
     {
@@ -70,12 +71,18 @@ gint main(gint argc, gchar *argv[])
             break;
         }
 
-        printPacket(SAPPacketBuffer,
-                        SAPPacketBufferBytesRead,
-                            SAPPacketSourceAddress);
+        ReceivedSAPPAcket = convertSAPStringToStruct(SAPPacketBuffer);
 
-        insertStringInSQLiteTable(&SDPDatabase, SAP_TABLE_NAME, "sdp",
-                                    &SAPPacketBuffer[SAP_PACKET_HEADER_SIZE]);
+        printSAPPacket(ReceivedSAPPAcket);
+
+        freeSAPPacket(ReceivedSAPPAcket);
+
+        // printPacketUgly(SAPPacketBuffer,
+        //                 SAPPacketBufferBytesRead,
+        //                     SAPPacketSourceAddress);
+
+        // insertStringInSQLiteTable(&SDPDatabase, SAP_TABLE_NAME, "sdp",
+        //                             &SAPPacketBuffer[SAP_PACKET_HEADER_SIZE]);
 
     } // End of while()
 
