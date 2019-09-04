@@ -1,6 +1,6 @@
 IDIR =../../headers
 CC=gcc
-CFLAGS=-I$(IDIR) `pkg-config --cflags glib-2.0 gio-2.0 sqlite3` -Wall -Werror
+CFLAGS=-I$(IDIR) `pkg-config --cflags glib-2.0 gio-2.0 sqlite3` -Wall -Werror -g
 
 ODIR=.
 LDIR =../../lib
