@@ -51,7 +51,7 @@
 
 #define IPV4_ADDRESS_LENGTH                 16
 
-#define SDP_DATABASE_FILENAME               "./SDP.db"
+#define SDP_DATABASE_FILENAME               "../SDP.db"
 #define SAP_TABLE_NAME                      "SAPDiscovery"
 
 #define MINUTE                              "60"
