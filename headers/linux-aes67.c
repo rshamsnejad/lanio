@@ -389,7 +389,7 @@ void printSAPPacket(SAPPacket *PacketToPrint)
                 PacketToPrint->Compression ? "Compressed" : "Not compressed");
     g_print("Authentication header length : \t%d\n",
                 PacketToPrint->AuthenticationLength);
-    g_print("Identifier Hash : \t\t%x\n", PacketToPrint->MessageIdentifierHash);
+    g_print("Identifier Hash : \t\t0x%04X\n", PacketToPrint->MessageIdentifierHash);
     g_print
     (
         "Sender IP : \t\t\t%s\n",
