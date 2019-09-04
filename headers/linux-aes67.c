@@ -19,14 +19,14 @@ void openSocket(GSocket **Socket, GSocketFamily SocketFamily,
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void bindSocket(GSocket **Socket, gchar *Address, gint Port)
+void bindSocket(GSocket *Socket, gchar *Address, gint Port)
 {
     GInetAddress *LocalAddress = g_inet_address_new_from_string(Address);
     GSocketAddress *SocketAddress =
         g_inet_socket_address_new(LocalAddress, Port);
     GError *SocketBindError = NULL;
 
-    g_socket_bind(*Socket, SocketAddress, TRUE, &SocketBindError);
+    g_socket_bind(Socket, SocketAddress, TRUE, &SocketBindError);
     // TRUE : Allow other UDP sockets to be bound to the same address
 
     g_clear_object(&LocalAddress);
@@ -39,13 +39,13 @@ void bindSocket(GSocket **Socket, gchar *Address, gint Port)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void joinMulticastGroup(GSocket **Socket, gchar *MulticastAddressString)
+void joinMulticastGroup(GSocket *Socket, gchar *MulticastAddressString)
 {
     GInetAddress *MulticastAddress =
         g_inet_address_new_from_string(MulticastAddressString);
     GError *MulticastJoinError = NULL;
 
-    g_socket_join_multicast_group(*Socket, MulticastAddress,
+    g_socket_join_multicast_group(Socket, MulticastAddress,
                                     FALSE, NULL, &MulticastJoinError);
     // FALSE : No need for source-specific multicast
     // NULL : Listen on all Ethernet interfaces
@@ -59,21 +59,19 @@ void joinMulticastGroup(GSocket **Socket, gchar *MulticastAddressString)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-gssize receivePacket(GSocket **Socket, gchar *SourceAddress,
-                        gssize SourceAddressSize, gchar *StringBuffer,
+gssize receivePacket(GSocket *Socket, gchar *StringBuffer,
                             gssize StringBufferSize)
 {
     // Reinitialize the packet string buffer
     memset(StringBuffer, '\0', StringBufferSize);
 
-    GSocketAddress *PacketSourceSocket = NULL;
     GError *PacketError = NULL;
 
     gint PacketStringBytesRead =
         g_socket_receive_from
         (
-            *Socket,
-            &PacketSourceSocket,
+            Socket,
+            NULL,
             StringBuffer,
             StringBufferSize,
             NULL,
@@ -81,28 +79,13 @@ gssize receivePacket(GSocket **Socket, gchar *SourceAddress,
         );
 
     if(PacketStringBytesRead < 0)
-        processGError("Error receiving SAP packet", PacketError);
+        processGError("Error receiving packet", PacketError);
     else if(PacketStringBytesRead == 0) // The connection has been closed
         return 0;
 
     // > StringBuffer points to the packet data at this point
 
-    gchar* AddressString = getAddressStringFromSocket(PacketSourceSocket);
-
-    g_strlcpy
-    (
-        SourceAddress,
-        AddressString,
-        SourceAddressSize
-    );
-
-    // > SourceAddress points to the received packet's
-    // source address at this point
-
-    g_clear_object(&PacketSourceSocket);
-    g_free(AddressString);
-
-    return PacketStringBytesRead;
+        return PacketStringBytesRead;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -171,7 +154,7 @@ void processSQLiteOpenError(gint SQLiteOpenErrorCode)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void createSAPTable(sqlite3 **SDPDatabase)
+void createSAPTable(sqlite3 *SDPDatabase)
 {
     gint SQLiteExecErrorCode = 0;
     gchar *SQLiteExecErrorString = NULL;
@@ -181,9 +164,10 @@ void createSAPTable(sqlite3 **SDPDatabase)
         " SAP_TABLE_NAME " \
         ( \
         id INTEGER PRIMARY KEY AUTOINCREMENT, \
-        timestamp INTEGER \
-        DEFAULT " SQLITE_UNIX_CURRENT_TS ", \
-        sdp VARCHAR UNIQUE \
+        timestamp INTEGER DEFAULT " SQLITE_UNIX_CURRENT_TS ", \
+        hash INTEGER UNIQUE, \
+        source VARCHAR, \
+        sdp VARCHAR \
         ) ; "
         "CREATE TRIGGER IF NOT EXISTS AFTER UPDATE ON " SAP_TABLE_NAME " \
         WHEN OLD.timestamp < " SQLITE_UNIX_CURRENT_TS " - (1 * " MINUTE ") \
@@ -195,13 +179,18 @@ void createSAPTable(sqlite3 **SDPDatabase)
     SQLiteExecErrorCode =
         sqlite3_exec
         (
-            *SDPDatabase,
+            SDPDatabase,
             SQLQuery,
             NULL, NULL, // No callback function needed
             &SQLiteExecErrorString
         );
 
-    processSQLiteExecError(SQLiteExecErrorCode, SQLiteExecErrorString);
+    processSQLiteExecError
+    (
+        SQLiteExecErrorCode,
+        SQLiteExecErrorString,
+        SQLQuery
+    );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -209,12 +198,15 @@ void createSAPTable(sqlite3 **SDPDatabase)
 ////////////////////////////////////////////////////////////////////////////////
 
 void processSQLiteExecError(gint SQLiteExecErrorCode,
-                                gchar *SQLiteExecErrorString)
+                                gchar *SQLiteExecErrorString,
+                                    gchar *SQLQuery)
 {
     if(SQLiteExecErrorCode != 0)
     {
-        g_print("SQLite exec error : %s\n", SQLiteExecErrorString);
+        g_printerr("SQLite exec error : %s\n", SQLiteExecErrorString);
+        g_printerr("SQLite query : %s\n", SQLQuery);
 
+        g_free(SQLQuery);
         sqlite3_free(SQLiteExecErrorString);
         exit(EXIT_FAILURE);
     }
@@ -224,7 +216,7 @@ void processSQLiteExecError(gint SQLiteExecErrorCode,
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void insertStringInSQLiteTable(sqlite3 **SDPDatabase, char *TableName,
+void insertStringInSQLiteTable(sqlite3 *SDPDatabase, char *TableName,
                                     gchar *ColumnName, gchar *DataString)
 {
     gint SQLiteExecErrorCode = 0;
@@ -242,7 +234,7 @@ void insertStringInSQLiteTable(sqlite3 **SDPDatabase, char *TableName,
     SQLiteExecErrorCode =
         sqlite3_exec
         (
-            *SDPDatabase,
+            SDPDatabase,
             SQLQuery,
             NULL, NULL, // No callback function needed
             &SQLiteExecErrorString
@@ -250,7 +242,12 @@ void insertStringInSQLiteTable(sqlite3 **SDPDatabase, char *TableName,
 
     g_free(SQLQuery);
 
-    processSQLiteExecError(SQLiteExecErrorCode, SQLiteExecErrorString);
+    processSQLiteExecError
+    (
+        SQLiteExecErrorCode,
+        SQLiteExecErrorString,
+        SQLQuery
+    );
 
     g_print("Inserted or updated\n\n");
 }
@@ -305,7 +302,14 @@ SAPPacket* convertSAPStringToStruct(gchar *SAPString)
     }
 
     ReturnPacket->OriginatingSourceAddress =
-        g_inet_address_new_from_bytes((guint8*) &SAPString[4], AddressFamily);
+        g_inet_address_to_string
+        (
+            g_inet_address_new_from_bytes
+            (
+                (guint8*) &SAPString[4],
+                AddressFamily
+            )
+        );
 
     // Authentication header is skipped, because it does not look like it's
     // used in AES67 SAP announcements.
@@ -355,7 +359,7 @@ guint32 concatenateBytes(guint8 *IntArray, gsize Start, gsize End)
 
 void freeSAPPacket(SAPPacket *SAPStructToFree)
 {
-    g_object_unref(SAPStructToFree->OriginatingSourceAddress);
+    g_free(SAPStructToFree->OriginatingSourceAddress);
     g_free(SAPStructToFree->PayloadType);
     g_free(SAPStructToFree->SDPDescription);
 
@@ -390,15 +394,110 @@ void printSAPPacket(SAPPacket *PacketToPrint)
     g_print("Authentication header length : \t%d\n",
                 PacketToPrint->AuthenticationLength);
     g_print("Identifier Hash : \t\t0x%04X\n", PacketToPrint->MessageIdentifierHash);
-    g_print
-    (
-        "Sender IP : \t\t\t%s\n",
-        g_inet_address_to_string(PacketToPrint->OriginatingSourceAddress)
-    );
+    g_print("Sender IP : \t\t\t%s\n", PacketToPrint->OriginatingSourceAddress);
     g_print("Payload type : \t\t\t%s\n", PacketToPrint->PayloadType);
     g_print("SDP description :\n%s\n", PacketToPrint->SDPDescription);
 
     g_print("\n\n");
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void insertSAPPacketInSAPTable(sqlite3 *SDPDatabase, SAPPacket* PacketToInsert)
+{
+    gint SQLiteExecErrorCode = 0;
+    gchar *SQLiteExecErrorString = NULL;
+
+    gchar *SQLQuery =
+        g_strdup_printf
+        (
+            "INSERT INTO " SAP_TABLE_NAME " (timestamp, hash, source, sdp) \
+            VALUES \
+            ( \
+                " SQLITE_UNIX_CURRENT_TS_ESCAPED ", \
+                '%d', \
+                '%s', \
+                '%s' \
+            ) \
+            ON CONFLICT (hash) \
+                DO UPDATE SET timestamp = " SQLITE_UNIX_CURRENT_TS_ESCAPED,
+            PacketToInsert->MessageIdentifierHash,
+            PacketToInsert->OriginatingSourceAddress,
+            PacketToInsert->SDPDescription
+        );
+
+    SQLiteExecErrorCode =
+        sqlite3_exec
+        (
+            SDPDatabase,
+            SQLQuery,
+            NULL, NULL, // No callback function needed
+            &SQLiteExecErrorString
+        );
+
+    g_free(SQLQuery);
+
+    processSQLiteExecError
+    (
+        SQLiteExecErrorCode,
+        SQLiteExecErrorString,
+        SQLQuery
+    );
+
+    g_print("Inserted or updated\n\n");
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void removeSAPPacketFromSAPTable(sqlite3 *SDPDatabase,
+                                    SAPPacket* PacketToRemove)
+{
+    gint SQLiteExecErrorCode = 0;
+    gchar *SQLiteExecErrorString = NULL;
+
+    gchar *SQLQuery =
+        g_strdup_printf
+        (
+            "DELETE FROM " SAP_TABLE_NAME " \
+            WHERE hash = %d",
+            PacketToRemove->MessageIdentifierHash
+        );
+
+    SQLiteExecErrorCode =
+        sqlite3_exec
+        (
+            SDPDatabase,
+            SQLQuery,
+            NULL, NULL, // No callback function needed
+            &SQLiteExecErrorString
+        );
+
+    g_free(SQLQuery);
+
+    processSQLiteExecError
+    (
+        SQLiteExecErrorCode,
+        SQLiteExecErrorString,
+        SQLQuery
+    );
+
+    g_print("Removed\n\n");
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void updateSAPTable(sqlite3 *SDPDatabase, SAPPacket *PacketToProcess)
+{
+    if(PacketToProcess->MessageType == SAP_ANNOUNCEMENT_PACKET)
+        insertSAPPacketInSAPTable(SDPDatabase, PacketToProcess);
+    else if(PacketToProcess->MessageType == SAP_DELETION_PACKET)
+        removeSAPPacketFromSAPTable(SDPDatabase, PacketToProcess);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

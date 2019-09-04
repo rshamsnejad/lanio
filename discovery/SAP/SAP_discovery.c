@@ -28,11 +28,11 @@ gint main(gint argc, gchar *argv[])
 
     // Bind the SAP socket to listen to all local interfaces
 
-    bindSocket(&SAPSocket, SAP_LOCAL_ADDRESS, SAP_MULTICAST_PORT);
+    bindSocket(SAPSocket, SAP_LOCAL_ADDRESS, SAP_MULTICAST_PORT);
 
     // Subscribe to the SAP Multicast group
 
-    joinMulticastGroup(&SAPSocket, SAP_MULTICAST_ADDRESS);
+    joinMulticastGroup(SAPSocket, SAP_MULTICAST_ADDRESS);
 
     // Open the SDP Database file
     sqlite3 *SDPDatabase = NULL;
@@ -41,26 +41,21 @@ gint main(gint argc, gchar *argv[])
         sqlite3_open(SDP_DATABASE_FILENAME, &SDPDatabase)
     );
 
-    createSAPTable(&SDPDatabase);
+    createSAPTable(SDPDatabase);
 
     // Begin the SAP packet receiving loop
 
     gchar SAPPacketBuffer[SAP_PACKET_BUFFER_SIZE] = {'\0'};
     gssize SAPPacketBufferBytesRead = 0;
-    gchar SAPPacketSourceAddress[IPV4_ADDRESS_LENGTH] = {'\0'};
 
     SAPPacket *ReceivedSAPPAcket = NULL;
 
     while(TRUE)
     {
-        // puts("Begin loop");
-
         SAPPacketBufferBytesRead =
             receivePacket
             (
-                &SAPSocket,
-                SAPPacketSourceAddress,
-                ARRAY_SIZE(SAPPacketSourceAddress),
+                SAPSocket,
                 SAPPacketBuffer,
                 ARRAY_SIZE(SAPPacketBuffer)
             );
@@ -72,18 +67,13 @@ gint main(gint argc, gchar *argv[])
         }
 
         ReceivedSAPPAcket = convertSAPStringToStruct(SAPPacketBuffer);
+        g_free(SAPPacketBuffer);
 
         printSAPPacket(ReceivedSAPPAcket);
 
+        updateSAPTable(SDPDatabase, ReceivedSAPPAcket);
+
         freeSAPPacket(ReceivedSAPPAcket);
-
-        // printPacketUgly(SAPPacketBuffer,
-        //                 SAPPacketBufferBytesRead,
-        //                     SAPPacketSourceAddress);
-
-        // insertStringInSQLiteTable(&SDPDatabase, SAP_TABLE_NAME, "sdp",
-        //                             &SAPPacketBuffer[SAP_PACKET_HEADER_SIZE]);
-
     } // End of while()
 
     g_clear_object(&SAPSocket);

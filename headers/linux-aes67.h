@@ -95,7 +95,7 @@ typedef struct _SAPPacket
     guint8 AuthenticationLength;
     guint16 MessageIdentifierHash;
     // gchar MessageIdentifierHash[SAP_IDENTIFIER_HASH_LENGTH];
-    GInetAddress *OriginatingSourceAddress;
+    gchar *OriginatingSourceAddress;
     gchar *PayloadType; //[MIME_TYPE_MAX_LENGTH];
     gchar *SDPDescription; //[SDP_MAX_LENGTH];
 } SAPPacket;
@@ -109,12 +109,11 @@ typedef struct _SAPPacket
 void openSocket(GSocket **Socket, GSocketFamily SocketFamily,
                     GSocketType SocketType,    GSocketProtocol SocketProtocol);
 
-void bindSocket(GSocket **Socket, gchar *Address, gint Port);
+void bindSocket(GSocket *Socket, gchar *Address, gint Port);
 
-void joinMulticastGroup(GSocket **Socket, gchar *MulticastAddressString);
+void joinMulticastGroup(GSocket *Socket, gchar *MulticastAddressString);
 
-gssize receivePacket(GSocket **Socket, gchar *SourceAddress,
-                        gssize SourceAddressSize, gchar *StringBuffer,
+gssize receivePacket(GSocket *Socket, gchar *StringBuffer,
                             gssize StringBufferSize);
 
 void printPacketUgly(gchar *PacketString, gssize PacketStringBytesRead,
@@ -126,12 +125,13 @@ void processSQLiteOpenError(int SQLiteErrorCode);
 
 gchar* getAddressStringFromSocket(GSocketAddress *SocketAddress);
 
-void createSAPTable(sqlite3 **SDPDatabase);
+void createSAPTable(sqlite3 *SDPDatabase);
 
 void processSQLiteExecError(gint SQLiteExecErrorCode,
-                                gchar *SQLiteExecErrorString);
+                                gchar *SQLiteExecErrorString,
+                                    gchar *SQLQuery);
 
-void insertStringInSQLiteTable(sqlite3 **SDPDatabase, char *TableName,
+void insertStringInSQLiteTable(sqlite3 *SDPDatabase, char *TableName,
                                     gchar *ColumnName, gchar *DataString);
 
 SAPPacket* convertSAPStringToStruct(gchar *SAPString);
@@ -141,6 +141,13 @@ guint32 concatenateBytes(guint8 *IntArray, gsize Start, gsize End);
 void freeSAPPacket(SAPPacket *SAPStructToFree);
 
 void printSAPPacket(SAPPacket *PacketToPrint);
+
+void insertSAPPacketInSAPTable(sqlite3 *SDPDatabase, SAPPacket* PacketToInsert);
+
+void removeSAPPacketFromSAPTable(sqlite3 *SDPDatabase,
+                                    SAPPacket* PacketToRemove);
+
+void updateSAPTable(sqlite3 *SDPDatabase, SAPPacket *PacketToProcess);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
