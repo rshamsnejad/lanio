@@ -85,7 +85,7 @@ gssize receivePacket(GSocket *Socket, gchar *StringBuffer,
 
     // > StringBuffer points to the packet data at this point
 
-        return PacketStringBytesRead;
+    return PacketStringBytesRead;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
