@@ -281,7 +281,6 @@ SAPPacket* convertSAPStringToStruct(gchar *SAPString)
     // 16 following bits are a unique hash attached to the stream
     ReturnPacket->MessageIdentifierHash =
         (guint16) concatenateBytes((guint8 *) SAPString, 2, 3);
-    // ReturnPacket->MessageIdentifierHash = (SAPString[2] << 8) | SAPString[3];
 
     // If AddressType is IPv4, the following 32 bits give the IPv4 address.
     // Otherwise if it's IPv6, the following 128 bits give the IPv6 address.
