@@ -67,7 +67,6 @@ gint main(gint argc, gchar *argv[])
         }
 
         ReceivedSAPPAcket = convertSAPStringToStruct(SAPPacketBuffer);
-        g_free(SAPPacketBuffer);
 
         printSAPPacket(ReceivedSAPPAcket);
 
@@ -76,6 +75,7 @@ gint main(gint argc, gchar *argv[])
         freeSAPPacket(ReceivedSAPPAcket);
     } // End of while()
 
+    g_free(SAPPacketBuffer);
     g_clear_object(&SAPSocket);
     sqlite3_close(SDPDatabase);
     return EXIT_SUCCESS;
