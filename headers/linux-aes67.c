@@ -300,15 +300,17 @@ SAPPacket* convertSAPStringToStruct(gchar *SAPString)
         AddressFamily = G_SOCKET_FAMILY_IPV6;
     }
 
-    ReturnPacket->OriginatingSourceAddress =
-        g_inet_address_to_string
+    GInetAddress *SourceAddress =
+        g_inet_address_new_from_bytes
         (
-            g_inet_address_new_from_bytes
-            (
-                (guint8*) &SAPString[4],
-                AddressFamily
-            )
+            (guint8*) &SAPString[4],
+            AddressFamily
         );
+
+    ReturnPacket->OriginatingSourceAddress = g_inet_address_to_string
+                                                (SourceAddress);
+
+    g_clear_object(&SourceAddress);
 
     // Authentication header is skipped, because it does not look like it's
     // used in AES67 SAP announcements.
