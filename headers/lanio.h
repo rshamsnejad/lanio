@@ -94,7 +94,6 @@ typedef struct _SAPPacket
     gboolean Compression;
     guint8 AuthenticationLength;
     guint16 MessageIdentifierHash;
-    // gchar MessageIdentifierHash[SAP_IDENTIFIER_HASH_LENGTH];
     gchar *OriginatingSourceAddress;
     gchar *PayloadType; //[MIME_TYPE_MAX_LENGTH];
     gchar *SDPDescription; //[SDP_MAX_LENGTH];
