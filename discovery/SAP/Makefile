@@ -7,10 +7,10 @@ LDIR =../../lib
 
 LIBS=`pkg-config --libs glib-2.0 gio-2.0 sqlite3`
 
-_DEPS = linux-aes67.h
+_DEPS = lanio.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = SAP_discovery.o $(IDIR)/linux-aes67.o
+_OBJ = SAP_discovery.o $(IDIR)/lanio.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
