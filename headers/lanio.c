@@ -206,10 +206,10 @@ void processSQLiteExecError(gint SQLiteExecErrorCode,
         g_printerr("SQLite exec error : %s\n", SQLiteExecErrorString);
         g_printerr("SQLite query : %s\n", SQLQuery);
 
-        g_free(SQLQuery);
-        sqlite3_free(SQLiteExecErrorString);
         exit(EXIT_FAILURE);
     }
+
+    sqlite3_free(SQLiteExecErrorString);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -240,14 +240,14 @@ void insertStringInSQLiteTable(sqlite3 *SDPDatabase, char *TableName,
             &SQLiteExecErrorString
         );
 
-    g_free(SQLQuery);
-
     processSQLiteExecError
     (
         SQLiteExecErrorCode,
         SQLiteExecErrorString,
         SQLQuery
     );
+
+    g_free(SQLQuery);
 
     g_print("Inserted or updated\n\n");
 }
@@ -438,14 +438,14 @@ void insertSAPPacketInSAPTable(sqlite3 *SDPDatabase, SAPPacket* PacketToInsert)
             &SQLiteExecErrorString
         );
 
-    g_free(SQLQuery);
-
     processSQLiteExecError
     (
         SQLiteExecErrorCode,
         SQLiteExecErrorString,
         SQLQuery
     );
+
+    g_free(SQLQuery);
 
     g_print("Inserted or updated\n\n");
 }
@@ -477,14 +477,14 @@ void removeSAPPacketFromSAPTable(sqlite3 *SDPDatabase,
             &SQLiteExecErrorString
         );
 
-    g_free(SQLQuery);
-
     processSQLiteExecError
     (
         SQLiteExecErrorCode,
         SQLiteExecErrorString,
         SQLQuery
     );
+
+    g_free(SQLQuery);
 
     g_print("Removed\n\n");
 }
