@@ -92,7 +92,7 @@ gssize receivePacket(GSocket *Socket, gchar *StringBuffer,
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void printPacketUgly(gchar *PacketString, gssize PacketStringBytesRead,
+/*void printPacketUgly(gchar *PacketString, gssize PacketStringBytesRead,
                     gchar *PacketSourceAddress)
 {
     g_print
@@ -106,7 +106,7 @@ void printPacketUgly(gchar *PacketString, gssize PacketStringBytesRead,
                 BYTE_TO_BINARY_STRING(PacketString[0]));
     g_print("=== TYPE : %s\n\n", &PacketString[SAP_PACKET_PREHEADER_SIZE]);
     g_print("%s\n\n\n\n", &PacketString[SAP_PACKET_HEADER_SIZE]);
-}
+}*/
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -126,13 +126,13 @@ void processGError(gchar *ErrorMessage, GError *ErrorStruct)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-gchar* getAddressStringFromSocket(GSocketAddress *SocketAddress)
+/*gchar* getAddressStringFromSocket(GSocketAddress *SocketAddress)
 {
     return g_inet_address_to_string
     (
         g_inet_socket_address_get_address((GInetSocketAddress *) SocketAddress)
     );
-}
+}*/
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -216,7 +216,7 @@ void processSQLiteExecError(gint SQLiteExecErrorCode,
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void insertStringInSQLiteTable(sqlite3 *SDPDatabase, char *TableName,
+/*void insertStringInSQLiteTable(sqlite3 *SDPDatabase, char *TableName,
                                     gchar *ColumnName, gchar *DataString)
 {
     gint SQLiteExecErrorCode = 0;
@@ -250,7 +250,7 @@ void insertStringInSQLiteTable(sqlite3 *SDPDatabase, char *TableName,
     g_free(SQLQuery);
 
     g_print("Inserted or updated\n\n");
-}
+}*/
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
