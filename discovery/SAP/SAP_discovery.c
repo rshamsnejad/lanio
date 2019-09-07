@@ -20,63 +20,70 @@ gint main(gint argc, gchar *argv[])
 {
 
     // Set up an UDP/IPv4 socket for SAP discovery
-
     GSocket *SAPSocket = NULL;
 
     openSocket(&SAPSocket, G_SOCKET_FAMILY_IPV4,
                 G_SOCKET_TYPE_DATAGRAM,	G_SOCKET_PROTOCOL_DEFAULT);
 
     // Bind the SAP socket to listen to all local interfaces
-
     bindSocket(SAPSocket, SAP_LOCAL_ADDRESS, SAP_MULTICAST_PORT);
 
     // Subscribe to the SAP Multicast group
-
     joinMulticastGroup(SAPSocket, SAP_MULTICAST_ADDRESS);
 
-    // Open the SDP Database file
+    // Set up the SDP Database file
     sqlite3 *SDPDatabase = NULL;
     processSQLiteOpenError
     (
         sqlite3_open(SDP_DATABASE_FILENAME, &SDPDatabase)
     );
-
     createSAPTable(SDPDatabase);
 
-    // Begin the SAP packet receiving loop
+    // Setting up the SAP packet receiving loop
+        GMainLoop *SAPDiscoveryLoop = g_main_loop_new(NULL, FALSE);
+            // NULL : Use default context
+            // FALSE : Don't run the loop right away
 
-    gchar SAPPacketBuffer[SAP_PACKET_BUFFER_SIZE] = {'\0'};
-    gssize SAPPacketBufferBytesRead = 0;
+        // Every 3 seconds, delete outdated database entries
+        data_deleteOldSDPEntries TimeoutDeleteData;
 
-    SAPPacket *ReceivedSAPPAcket = NULL;
+        TimeoutDeleteData.DiscoveryLoop = SAPDiscoveryLoop;
+        TimeoutDeleteData.Database = SDPDatabase;
 
-    while(TRUE)
-    {
-        SAPPacketBufferBytesRead =
-            receivePacket
-            (
-                SAPSocket,
-                SAPPacketBuffer,
-                ARRAY_SIZE(SAPPacketBuffer)
-            );
+        g_timeout_add
+        (
+            3 * MSEC_IN_SEC,
+            (GSourceFunc) callback_deleteOldSDPEntries,
+            &TimeoutDeleteData
+        );
 
-        if(SAPPacketBufferBytesRead <= 0) // The connection has been reset
-        {
-            g_print("Terminated\n");
-            break;
-        }
+        // Insert or delete database entries based on incoming SAP packets
+        GSource *SAPSocketMonitoring =
+            g_socket_create_source(SAPSocket, G_IO_IN | G_IO_PRI, NULL);
+                // NULL : No GCancellable needed
+        g_source_attach(SAPSocketMonitoring, NULL);
+            // NULL : Use default context
 
-        ReceivedSAPPAcket = convertSAPStringToStruct(SAPPacketBuffer);
+        data_insertIncomingSAPPackets SAPSocketMonitoringData;
 
-        printSAPPacket(ReceivedSAPPAcket);
+        SAPSocketMonitoringData.DiscoveryLoop = SAPDiscoveryLoop;
+        SAPSocketMonitoringData.Database = SDPDatabase;
 
-        updateSAPTable(SDPDatabase, ReceivedSAPPAcket);
+        g_source_set_callback
+        (
+            SAPSocketMonitoring,
+            (GSourceFunc) callback_insertIncomingSAPPackets,
+            &SAPSocketMonitoringData,
+            NULL
+        );
 
-        freeSAPPacket(ReceivedSAPPAcket);
-    } // End of while()
+    // Start the loop
+    g_main_loop_run(SAPDiscoveryLoop);
 
-    g_free(SAPPacketBuffer);
+    // Cleanup section
+    g_main_loop_unref(SAPDiscoveryLoop);
     g_clear_object(&SAPSocket);
     sqlite3_close(SDPDatabase);
+    
     return EXIT_SUCCESS;
 }

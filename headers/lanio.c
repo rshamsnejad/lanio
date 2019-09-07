@@ -27,7 +27,7 @@ void bindSocket(GSocket *Socket, gchar *Address, gint Port)
     GError *SocketBindError = NULL;
 
     g_socket_bind(Socket, SocketAddress, TRUE, &SocketBindError);
-    // TRUE : Allow other UDP sockets to be bound to the same address
+        // TRUE : Allow other UDP sockets to be bound to the same address
 
     g_clear_object(&LocalAddress);
     g_clear_object(&SocketAddress);
@@ -47,8 +47,8 @@ void joinMulticastGroup(GSocket *Socket, gchar *MulticastAddressString)
 
     g_socket_join_multicast_group(Socket, MulticastAddress,
                                     FALSE, NULL, &MulticastJoinError);
-    // FALSE : No need for source-specific multicast
-    // NULL : Listen on all Ethernet interfaces
+        // FALSE : No need for source-specific multicast
+        // NULL : Listen on all Ethernet interfaces
 
     g_clear_object(&MulticastAddress);
 
@@ -92,26 +92,6 @@ gssize receivePacket(GSocket *Socket, gchar *StringBuffer,
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-/*void printPacketUgly(gchar *PacketString, gssize PacketStringBytesRead,
-                    gchar *PacketSourceAddress)
-{
-    g_print
-    (
-        "=== %s: %ld byte SAP packet with %ld byte SDP description :\n",
-        PacketSourceAddress,
-        PacketStringBytesRead,
-        PacketStringBytesRead-SAP_PACKET_HEADER_SIZE
-    );
-    g_print("=== FLAGS : " BYTE_TO_BINARY_STRING_PATTERN "\n",
-                BYTE_TO_BINARY_STRING(PacketString[0]));
-    g_print("=== TYPE : %s\n\n", &PacketString[SAP_PACKET_PREHEADER_SIZE]);
-    g_print("%s\n\n\n\n", &PacketString[SAP_PACKET_HEADER_SIZE]);
-}*/
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
 void processGError(gchar *ErrorMessage, GError *ErrorStruct)
 {
     if(ErrorStruct)
@@ -121,18 +101,6 @@ void processGError(gchar *ErrorMessage, GError *ErrorStruct)
         exit(EXIT_FAILURE);
     }
 }
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-/*gchar* getAddressStringFromSocket(GSocketAddress *SocketAddress)
-{
-    return g_inet_address_to_string
-    (
-        g_inet_socket_address_get_address((GInetSocketAddress *) SocketAddress)
-    );
-}*/
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -216,46 +184,6 @@ void processSQLiteExecError(gint SQLiteExecErrorCode,
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-/*void insertStringInSQLiteTable(sqlite3 *SDPDatabase, char *TableName,
-                                    gchar *ColumnName, gchar *DataString)
-{
-    gint SQLiteExecErrorCode = 0;
-    gchar *SQLiteExecErrorString = NULL;
-
-    gchar *SQLQuery =
-        g_strdup_printf
-        (
-            "INSERT INTO %s (%s) \
-            VALUES ('%s') \
-            ON CONFLICT (%s) DO UPDATE SET timestamp = " SQLITE_UNIX_CURRENT_TS_ESCAPED,
-            TableName, ColumnName, DataString, ColumnName
-        );
-
-    SQLiteExecErrorCode =
-        sqlite3_exec
-        (
-            SDPDatabase,
-            SQLQuery,
-            NULL, NULL, // No callback function needed
-            &SQLiteExecErrorString
-        );
-
-    processSQLiteExecError
-    (
-        SQLiteExecErrorCode,
-        SQLiteExecErrorString,
-        SQLQuery
-    );
-
-    g_free(SQLQuery);
-
-    g_print("Inserted or updated\n\n");
-}*/
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
 SAPPacket* convertSAPStringToStruct(gchar *SAPString)
 {
     SAPPacket *ReturnPacket = g_malloc0(sizeof(SAPPacket));
@@ -276,7 +204,7 @@ SAPPacket* convertSAPStringToStruct(gchar *SAPString)
 
     // 8 following bits give an unsigned integer
     // for the authentication header length
-    ReturnPacket->AuthenticationLength = SAPString[1];
+    ReturnPacket->AuthenticationLength = (guint8) SAPString[1];
 
     // 16 following bits are a unique hash attached to the stream
     ReturnPacket->MessageIdentifierHash =
@@ -399,7 +327,7 @@ void printSAPPacket(SAPPacket *PacketToPrint)
     g_print("Payload type : \t\t\t%s\n", PacketToPrint->PayloadType);
     g_print("SDP description :\n%s\n", PacketToPrint->SDPDescription);
 
-    g_print("\n\n");
+    g_print("\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -447,7 +375,7 @@ void insertSAPPacketInSAPTable(sqlite3 *SDPDatabase, SAPPacket* PacketToInsert)
 
     g_free(SQLQuery);
 
-    g_print("Inserted or updated\n\n");
+    g_print("Inserted or updated\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -486,7 +414,7 @@ void removeSAPPacketFromSAPTable(sqlite3 *SDPDatabase,
 
     g_free(SQLQuery);
 
-    g_print("Removed\n\n");
+    g_print("Removed\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -499,6 +427,82 @@ void updateSAPTable(sqlite3 *SDPDatabase, SAPPacket *PacketToProcess)
         insertSAPPacketInSAPTable(SDPDatabase, PacketToProcess);
     else if(PacketToProcess->MessageType == SAP_DELETION_PACKET)
         removeSAPPacketFromSAPTable(SDPDatabase, PacketToProcess);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+gboolean callback_deleteOldSDPEntries(gpointer Data)
+{
+    gint SQLiteExecErrorCode = 0;
+    gchar *SQLiteExecErrorString = NULL;
+
+    gchar *SQLQuery =
+        "DELETE FROM " SAP_TABLE_NAME " \
+        WHERE timestamp < " SQLITE_UNIX_CURRENT_TS " - (1 * " MINUTE ")";
+
+    SQLiteExecErrorCode =
+        sqlite3_exec
+        (
+            ((data_deleteOldSDPEntries*) Data)->Database,
+            SQLQuery,
+            NULL, NULL, // No callback function needed
+            &SQLiteExecErrorString
+        );
+
+    processSQLiteExecError
+    (
+        SQLiteExecErrorCode,
+        SQLiteExecErrorString,
+        SQLQuery
+    );
+
+    g_print("Removed old entries\n");
+
+    return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+gboolean callback_insertIncomingSAPPackets(GSocket *Socket,
+                                             GIOCondition condition,
+                                                gpointer Data)
+{
+    gchar SAPPacketBuffer[SAP_PACKET_BUFFER_SIZE] = {'\0'};
+    gssize SAPPacketBufferBytesRead = 0;
+
+    SAPPacket *ReceivedSAPPAcket = NULL;
+
+    SAPPacketBufferBytesRead =
+        receivePacket
+        (
+            Socket,
+            SAPPacketBuffer,
+            ARRAY_SIZE(SAPPacketBuffer)
+        );
+
+    if(SAPPacketBufferBytesRead <= 0) // The connection has been reset
+    {
+        g_print("Terminated\n");
+        return FALSE;
+    }
+
+    ReceivedSAPPAcket = convertSAPStringToStruct(SAPPacketBuffer);
+
+    //printSAPPacket(ReceivedSAPPAcket);
+
+    updateSAPTable
+    (
+        ((data_insertIncomingSAPPackets*) Data)->Database,
+        ReceivedSAPPAcket
+    );
+
+    freeSAPPacket(ReceivedSAPPAcket);
+
+    return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

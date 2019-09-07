@@ -39,17 +39,11 @@
 #define SAP_PACKET_BUFFER_SIZE              SDP_MAX_LENGTH + \
                                             MIME_TYPE_MAX_LENGTH + 256
 
-
-#define SAP_PACKET_PREHEADER_SIZE           8
-#define SAP_PACKET_HEADER_SIZE              24
-
 #define SAP_SOURCE_IS_IPV4                  0
 #define SAP_SOURCE_IS_IPV6                  1
 
 #define SAP_ANNOUNCEMENT_PACKET             0
 #define SAP_DELETION_PACKET                 1
-
-#define IPV4_ADDRESS_LENGTH                 16
 
 #define SDP_DATABASE_FILENAME               "../SDP.db"
 #define SAP_TABLE_NAME                      "SAPDiscovery"
@@ -57,6 +51,8 @@
 #define MINUTE                              "60"
 #define SQLITE_UNIX_CURRENT_TS              "(CAST(strftime('%s','now') as INT))"
 #define SQLITE_UNIX_CURRENT_TS_ESCAPED      "(CAST(strftime('%%s','now') as INT))"
+
+#define MSEC_IN_SEC                         1000
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -87,17 +83,29 @@
 
 typedef struct _SAPPacket
 {
-    guint8 SAPVersion;
-    gboolean AddressType;
-    gboolean MessageType;
-    gboolean Encryption;
-    gboolean Compression;
-    guint8 AuthenticationLength;
-    guint16 MessageIdentifierHash;
-    gchar *OriginatingSourceAddress;
-    gchar *PayloadType; //[MIME_TYPE_MAX_LENGTH];
-    gchar *SDPDescription; //[SDP_MAX_LENGTH];
+    guint8      SAPVersion;
+    gboolean    AddressType;
+    gboolean    MessageType;
+    gboolean    Encryption;
+    gboolean    Compression;
+    guint8      AuthenticationLength;
+    guint16     MessageIdentifierHash;
+    gchar      *OriginatingSourceAddress;
+    gchar      *PayloadType;
+    gchar      *SDPDescription;
 } SAPPacket;
+
+typedef struct _data_deleteOldSDPEntries
+{
+    GMainLoop  *DiscoveryLoop;
+    sqlite3    *Database;
+} data_deleteOldSDPEntries;
+
+typedef struct _data_insertIncomingSAPPackets
+{
+    GMainLoop  *DiscoveryLoop;
+    sqlite3    *Database;
+} data_insertIncomingSAPPackets;
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -115,23 +123,15 @@ void joinMulticastGroup(GSocket *Socket, gchar *MulticastAddressString);
 gssize receivePacket(GSocket *Socket, gchar *StringBuffer,
                             gssize StringBufferSize);
 
-// void printPacketUgly(gchar *PacketString, gssize PacketStringBytesRead,
-//                       gchar *PacketSourceAddress);
-
 void processGError(gchar *ErrorMessage, GError *ErrorStruct);
 
 void processSQLiteOpenError(int SQLiteErrorCode);
-
-// gchar* getAddressStringFromSocket(GSocketAddress *SocketAddress);
 
 void createSAPTable(sqlite3 *SDPDatabase);
 
 void processSQLiteExecError(gint SQLiteExecErrorCode,
                                 gchar *SQLiteExecErrorString,
                                     gchar *SQLQuery);
-
-// void insertStringInSQLiteTable(sqlite3 *SDPDatabase, char *TableName,
-//                                     gchar *ColumnName, gchar *DataString);
 
 SAPPacket* convertSAPStringToStruct(gchar *SAPString);
 
@@ -147,6 +147,12 @@ void removeSAPPacketFromSAPTable(sqlite3 *SDPDatabase,
                                     SAPPacket* PacketToRemove);
 
 void updateSAPTable(sqlite3 *SDPDatabase, SAPPacket *PacketToProcess);
+
+gboolean callback_deleteOldSDPEntries(gpointer Data);
+
+gboolean callback_insertIncomingSAPPackets(GSocket *Socket,
+                                             GIOCondition condition,
+                                                gpointer Data);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
