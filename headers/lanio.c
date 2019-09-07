@@ -373,13 +373,14 @@ void insertSAPPacketInSAPTable(sqlite3 *SDPDatabase, SAPPacket* PacketToInsert)
         SQLQuery
     );
 
-    g_free(SQLQuery);
+    if(sqlite3_changes(SDPDatabase) > 0)
+        g_print
+        (
+            "Inserted or updated SAP entry.\n\tID = 0x%04X\n",
+            PacketToInsert->MessageIdentifierHash
+        );
 
-    g_print
-    (
-        "Inserted or updated SAP entry.\n\tID = 0x%04X\n",
-        PacketToInsert->MessageIdentifierHash
-    );
+    g_free(SQLQuery);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -416,13 +417,14 @@ void removeSAPPacketFromSAPTable(sqlite3 *SDPDatabase,
         SQLQuery
     );
 
-    g_free(SQLQuery);
+    if(sqlite3_changes(SDPDatabase) > 0)
+        g_print
+        (
+            "Removed SAP entry.\n\tID = 0x%04X\n",
+            PacketToRemove->MessageIdentifierHash
+        );
 
-    g_print
-    (
-        "Removed SAP entry.\n\tID = 0x%04X\n",
-        PacketToRemove->MessageIdentifierHash
-    );
+    g_free(SQLQuery);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -475,7 +477,8 @@ gboolean callback_deleteOldSDPEntries(gpointer Data)
         SQLQuery
     );
 
-    g_print("Removed outdated SAP entries.\n");
+    if(sqlite3_changes(((data_deleteOldSDPEntries*) Data)->Database) > 0)
+        g_print("Removed outdated SAP entries.\n");
 
     return TRUE;
 }
