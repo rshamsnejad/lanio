@@ -111,7 +111,7 @@ void processSQLiteOpenError(gint SQLiteOpenErrorCode)
     if(SQLiteOpenErrorCode != SQLITE_OK)
     {
         const gchar *SQLiteOpenErrorString = sqlite3_errstr(SQLiteOpenErrorCode);
-        g_printerr("SQLite open error : %s\n", SQLiteOpenErrorString);
+        g_warning("SQLite open error : %s\n", SQLiteOpenErrorString);
 
         g_free((gpointer) SQLiteOpenErrorString);
         exit(EXIT_FAILURE);
@@ -171,8 +171,12 @@ void processSQLiteExecError(gint SQLiteExecErrorCode,
 {
     if(SQLiteExecErrorCode != 0)
     {
-        g_printerr("SQLite exec error : %s\n", SQLiteExecErrorString);
-        g_printerr("SQLite query : %s\n", SQLQuery);
+        g_warning
+        (
+            "SQLite exec error : %s\nSQLite query : %s\n",
+            SQLiteExecErrorString,
+            SQLQuery
+        );
 
         exit(EXIT_FAILURE);
     }
@@ -301,33 +305,31 @@ void freeSAPPacket(SAPPacket *SAPStructToFree)
 
 void printSAPPacket(SAPPacket *PacketToPrint)
 {
-    g_print("=== BEGIN RECEIVED SAP PACKET ===\n");
+    g_debug("=== BEGIN RECEIVED SAP PACKET ===");
 
-    g_print("SAP Version : \t\t\t%d\n", PacketToPrint->SAPVersion);
-    g_print
+    g_debug("SAP Version : \t\t\t%d", PacketToPrint->SAPVersion);
+    g_debug
     (
-        "Address Type : \t\t\t%s\n",
+        "Address Type : \t\t\t%s",
         PacketToPrint->AddressType ==
             SAP_SOURCE_IS_IPV4 ? "IPv4" : "IPv6"
     );
-    g_print
+    g_debug
     (
-        "Message Type : \t\t\t%s\n",
+        "Message Type : \t\t\t%s",
         PacketToPrint->MessageType ==
             SAP_ANNOUNCEMENT_PACKET ? "Announcement" : "Deletion"
     );
-    g_print("Encryption : \t\t\t%s\n",
+    g_debug("Encryption : \t\t\t%s",
                 PacketToPrint->Encryption ? "Encrypted" : "Not encrypted");
-    g_print("Compression : \t\t\t%s\n",
+    g_debug("Compression : \t\t\t%s",
                 PacketToPrint->Compression ? "Compressed" : "Not compressed");
-    g_print("Authentication header length : \t%d\n",
+    g_debug("Authentication header length : \t%d",
                 PacketToPrint->AuthenticationLength);
-    g_print("Identifier Hash : \t\t0x%04X\n", PacketToPrint->MessageIdentifierHash);
-    g_print("Sender IP : \t\t\t%s\n", PacketToPrint->OriginatingSourceAddress);
-    g_print("Payload type : \t\t\t%s\n", PacketToPrint->PayloadType);
-    g_print("SDP description :\n%s\n", PacketToPrint->SDPDescription);
-
-    g_print("\n");
+    g_debug("Identifier Hash : \t\t0x%04X", PacketToPrint->MessageIdentifierHash);
+    g_debug("Sender IP : \t\t\t%s", PacketToPrint->OriginatingSourceAddress);
+    g_debug("Payload type : \t\t\t%s", PacketToPrint->PayloadType);
+    g_debug("SDP description :\n%s", PacketToPrint->SDPDescription);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -374,9 +376,9 @@ void insertSAPPacketInSAPTable(sqlite3 *SDPDatabase, SAPPacket* PacketToInsert)
     );
 
     if(sqlite3_changes(SDPDatabase) > 0)
-        g_print
+        g_info
         (
-            "Inserted or updated SAP entry.\n\tID = 0x%04X\n",
+            "Inserted or updated SAP entry.\n\tID = 0x%04X",
             PacketToInsert->MessageIdentifierHash
         );
 
@@ -418,9 +420,9 @@ void removeSAPPacketFromSAPTable(sqlite3 *SDPDatabase,
     );
 
     if(sqlite3_changes(SDPDatabase) > 0)
-        g_print
+        g_info
         (
-            "Removed SAP entry.\n\tID = 0x%04X\n",
+            "Removed SAP entry.\n\tID = 0x%04X",
             PacketToRemove->MessageIdentifierHash
         );
 
@@ -441,9 +443,9 @@ void updateSAPTable(sqlite3 *SDPDatabase, SAPPacket *PacketToProcess)
             removeSAPPacketFromSAPTable(SDPDatabase, PacketToProcess);
     }
     else
-        g_print
+        g_info
         (
-            "Invalid SAP Packet. Ignoring...\n\tID = 0x%04X\n",
+            "Invalid SAP Packet. Ignoring...\n\tID = 0x%04X",
             PacketToProcess->MessageIdentifierHash
         );
 }
@@ -478,7 +480,7 @@ gboolean callback_deleteOldSDPEntries(gpointer Data)
     );
 
     if(sqlite3_changes(((data_deleteOldSDPEntries*) Data)->Database) > 0)
-        g_print("Removed outdated SAP entries.\n");
+        g_info("Removed outdated SAP entries.");
 
     return TRUE;
 }
@@ -506,7 +508,7 @@ gboolean callback_insertIncomingSAPPackets(GSocket *Socket,
 
     if(SAPPacketBufferBytesRead <= 0) // The connection has been reset
     {
-        g_print("Connection reset. Terminating...\n");
+        g_message("Connection reset. Terminating...");
         return FALSE;
     }
 
