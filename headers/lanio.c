@@ -423,10 +423,15 @@ void removeSAPPacketFromSAPTable(sqlite3 *SDPDatabase,
 
 void updateSAPTable(sqlite3 *SDPDatabase, SAPPacket *PacketToProcess)
 {
-    if(PacketToProcess->MessageType == SAP_ANNOUNCEMENT_PACKET)
-        insertSAPPacketInSAPTable(SDPDatabase, PacketToProcess);
-    else if(PacketToProcess->MessageType == SAP_DELETION_PACKET)
-        removeSAPPacketFromSAPTable(SDPDatabase, PacketToProcess);
+    if(checkSAPPacket(PacketToProcess))
+    {
+        if(PacketToProcess->MessageType == SAP_ANNOUNCEMENT_PACKET)
+            insertSAPPacketInSAPTable(SDPDatabase, PacketToProcess);
+        else if(PacketToProcess->MessageType == SAP_DELETION_PACKET)
+            removeSAPPacketFromSAPTable(SDPDatabase, PacketToProcess);
+    }
+    else
+        g_print("Invalid SAP Packet. Ignoring...\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -508,3 +513,18 @@ gboolean callback_insertIncomingSAPPackets(GSocket *Socket,
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+gboolean checkSAPPacket(SAPPacket *PacketToCheck)
+{
+    if
+    (
+        PacketToCheck->SAPVersion != 1 ||
+        PacketToCheck->AddressType != SAP_SOURCE_IS_IPV4 ||
+        PacketToCheck->Encryption != 0 ||
+        PacketToCheck->Compression != 0 ||
+        g_strcmp0(PacketToCheck->PayloadType, "application/sdp")
+    )
+        return FALSE;
+    else
+        return TRUE;
+}
