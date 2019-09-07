@@ -375,7 +375,11 @@ void insertSAPPacketInSAPTable(sqlite3 *SDPDatabase, SAPPacket* PacketToInsert)
 
     g_free(SQLQuery);
 
-    g_print("Inserted or updated\n");
+    g_print
+    (
+        "Inserted or updated SAP entry.\n\tID = 0x%04X\n",
+        PacketToInsert->MessageIdentifierHash
+    );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -414,7 +418,11 @@ void removeSAPPacketFromSAPTable(sqlite3 *SDPDatabase,
 
     g_free(SQLQuery);
 
-    g_print("Removed\n");
+    g_print
+    (
+        "Removed SAP entry.\n\tID = 0x%04X\n",
+        PacketToRemove->MessageIdentifierHash
+    );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -431,7 +439,11 @@ void updateSAPTable(sqlite3 *SDPDatabase, SAPPacket *PacketToProcess)
             removeSAPPacketFromSAPTable(SDPDatabase, PacketToProcess);
     }
     else
-        g_print("Invalid SAP Packet. Ignoring...\n");
+        g_print
+        (
+            "Invalid SAP Packet. Ignoring...\n\tID = 0x%04X\n",
+            PacketToProcess->MessageIdentifierHash
+        );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -463,7 +475,7 @@ gboolean callback_deleteOldSDPEntries(gpointer Data)
         SQLQuery
     );
 
-    g_print("Removed old entries\n");
+    g_print("Removed outdated SAP entries.\n");
 
     return TRUE;
 }
@@ -491,7 +503,7 @@ gboolean callback_insertIncomingSAPPackets(GSocket *Socket,
 
     if(SAPPacketBufferBytesRead <= 0) // The connection has been reset
     {
-        g_print("Terminated\n");
+        g_print("Connection reset. Terminating...\n");
         return FALSE;
     }
 
