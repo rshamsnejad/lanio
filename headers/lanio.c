@@ -514,7 +514,7 @@ gboolean callback_insertIncomingSAPPackets(GSocket *Socket,
 
     ReceivedSAPPAcket = convertSAPStringToStruct(SAPPacketBuffer);
 
-    printSAPPacket(ReceivedSAPPAcket);
+    // printSAPPacket(ReceivedSAPPAcket);
 
     updateSAPTable
     (
@@ -584,6 +584,149 @@ void setUpSAPPacketLoop(GMainLoop *Loop, GSocket *Socket, sqlite3 *Database)
         &SAPSocketMonitoringData,
         NULL
     );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void discoverSAPAnnouncements(void)
+{
+    // Set up an UDP/IPv4 socket for SAP discovery
+    GSocket *SAPSocket = NULL;
+
+    openSocket(&SAPSocket, G_SOCKET_FAMILY_IPV4,
+                G_SOCKET_TYPE_DATAGRAM,	G_SOCKET_PROTOCOL_DEFAULT);
+
+    // Bind the SAP socket to listen to all local interfaces
+    bindSocket(SAPSocket, SAP_LOCAL_ADDRESS, SAP_MULTICAST_PORT);
+
+    // Subscribe to the SAP Multicast group
+    joinMulticastGroup(SAPSocket, SAP_MULTICAST_ADDRESS);
+
+    // Set up the SDP Database file
+    sqlite3 *SDPDatabase = NULL;
+    processSQLiteOpenError
+    (
+        sqlite3_open(SDP_DATABASE_FILENAME, &SDPDatabase)
+    );
+    createSAPTable(SDPDatabase);
+
+    // Set up the SAP packet receiving loop
+    GMainLoop *SAPDiscoveryLoop = g_main_loop_new(NULL, FALSE);
+        // NULL : Use default context
+        // FALSE : Don't run the loop right away
+    setUpSAPPacketLoop(SAPDiscoveryLoop, SAPSocket, SDPDatabase);
+
+    // Start the loop
+    g_main_loop_run(SAPDiscoveryLoop);
+
+    // Cleanup section
+    g_main_loop_unref(SAPDiscoveryLoop);
+    g_clear_object(&SAPSocket);
+    sqlite3_close(SDPDatabase);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void parseCommandLineOptions(gboolean *ShowParameter,
+                                gboolean *DiscoverParameter,
+                                    gint argc,
+                                        gchar *argv[])
+{
+    GOptionEntry CommandLineOptionEntries[] =
+    {
+        { "show", 's', 0, G_OPTION_ARG_NONE, ShowParameter,
+            "Show discovered SAP announcements (not compatible with -d)", NULL },
+        { "discover", 'd', 0, G_OPTION_ARG_NONE, DiscoverParameter,
+            "Start SAP announcement discovery (not compatible with -s)", NULL },
+        /*{ G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_STRING_ARRAY,
+            &CommandLineRemainingOptions, "Remaining options", "<optional>"},*/
+        { NULL }
+    };
+
+    GOptionContext *CommandLineOptionContext =
+        g_option_context_new("- AES67 SAP discovery");
+
+    g_option_context_set_summary
+    (
+        CommandLineOptionContext,
+        "Discover SAP annoucements of AES67 streams available on the network"
+    );
+    g_option_context_set_description
+    (
+        CommandLineOptionContext,
+        "Version " LANIO_VERSION "\nReport bugs to dev@lanio.com"
+    );
+    g_option_context_add_main_entries
+    (
+        CommandLineOptionContext,
+        CommandLineOptionEntries,
+        NULL
+    );
+        /*
+        GStreamer options are added with :
+        g_option_context_add_group
+        (
+            CommandLineOptionContext,
+            gst_init_get_option_group()
+        );
+        */
+
+    GError *CommandLineOptionError = NULL;
+
+    gboolean CommandLineOptionParseReturn =
+        g_option_context_parse
+        (
+            CommandLineOptionContext,
+            &argc,
+            &argv,
+            &CommandLineOptionError
+        );
+
+    if(!CommandLineOptionParseReturn)
+    {
+        g_warning
+        (
+            "Error in command line : %s\n",
+            CommandLineOptionError->message
+        );
+
+        g_clear_error(&CommandLineOptionError);
+        g_option_context_free(CommandLineOptionContext);
+
+        exit(EXIT_FAILURE);
+    }
+
+    if
+    (
+        !(*ShowParameter || *DiscoverParameter) ||
+        (*ShowParameter && *DiscoverParameter)
+    )
+    {
+        g_printerr
+        (
+            "%s\n",
+            g_option_context_get_help(CommandLineOptionContext, TRUE, NULL)
+        );
+        exit(EXIT_FAILURE);
+    }
+
+    g_option_context_free(CommandLineOptionContext);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+guint getStringArraySize(gchar **StringArray)
+{
+    if(StringArray)
+        return g_strv_length(StringArray);
+    else
+        return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

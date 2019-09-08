@@ -27,6 +27,8 @@
 
 // === Constants ===
 
+#define LANIO_VERSION                             "<under development>"
+
 #define SAP_MULTICAST_ADDRESS               "239.255.255.255"
 #define SAP_MULTICAST_PORT                  9875
 
@@ -158,6 +160,15 @@ gboolean callback_insertIncomingSAPPackets(GSocket *Socket,
 gboolean checkSAPPacket(SAPPacket *PacketToCheck);
 
 void setUpSAPPacketLoop(GMainLoop *Loop, GSocket *Socket, sqlite3 *Database);
+
+void discoverSAPAnnouncements(void);
+
+void parseCommandLineOptions(gboolean *ShowParameter,
+                                gboolean *DiscoverParameter,
+                                    gint argc,
+                                        gchar *argv[]);
+
+guint getStringArraySize(gchar **StringArray);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
