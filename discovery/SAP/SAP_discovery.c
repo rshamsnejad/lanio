@@ -26,11 +26,14 @@ gint main(gint argc, gchar *argv[])
         glib_micro_version
     );
 
-    gboolean    ShowParameter = FALSE;
-    gboolean    DiscoverParameter = FALSE;
-    // gchar     **CommandLineRemainingOptions = NULL;
+    DiscoveryCLIParameters CommandLineParameters;
+    initDiscoveryCLIParameters(&CommandLineParameters);
 
-    parseCommandLineOptions(&ShowParameter, &DiscoverParameter, argc, argv);
+    parseDiscoveryCommandLineOptions
+    (
+        &CommandLineParameters,
+        argc,
+        argv);
 
     /* guint CommandLineRemainingOptionsSize =
         getStringArraySize(CommandLineRemainingOptions); */
@@ -46,10 +49,35 @@ gint main(gint argc, gchar *argv[])
 
     g_free(SDPDatabasePath);
 
-    if(ShowParameter)
-        g_print("Teeny weeny streamy\n");
-    else if(DiscoverParameter)
+    if(CommandLineParameters.LogStandard)
     {
+        g_debug("Output to standard streams");
+
+        g_log_set_writer_func(g_log_writer_standard_streams, NULL, NULL);
+    }
+    else if(CommandLineParameters.LogJournald)
+    {
+        g_debug("Output to journald");
+
+        g_log_set_writer_func(g_log_writer_journald, NULL, NULL);
+    }
+
+    if(CommandLineParameters.Show)
+    {
+        g_debug("Show mode");
+
+        g_print("Teeny weeny streamy\n");
+    }
+    else if(CommandLineParameters.DiscoverTerminal)
+    {
+        g_debug("Discover mode, terminal");
+
+        discoverSAPAnnouncements(SDPDatabase);
+    }
+    else if(CommandLineParameters.DiscoverDaemon)
+    {
+        g_debug("Discover mode, daemon");
+
         pid_t ChildPID, ChildSID;
 
         ChildPID = fork();
@@ -82,10 +110,13 @@ gint main(gint argc, gchar *argv[])
             exit(EXIT_FAILURE);
         }
 
-        /* Close out the standard file descriptors */
-        close(STDIN_FILENO);
-        close(STDOUT_FILENO);
-        close(STDERR_FILENO);
+        if(!CommandLineParameters.LogStandard)
+        {
+            /* Close out the standard file descriptors */
+            close(STDIN_FILENO);
+            close(STDOUT_FILENO);
+            close(STDERR_FILENO);
+        }
 
         /* Daemon-specific initialization goes here */
         if(ChildPID == 0)
@@ -97,6 +128,6 @@ gint main(gint argc, gchar *argv[])
     // g_strfreev(CommandLineRemainingOptions);
     sqlite3_close(SDPDatabase);
 
-    g_debug("Success on discovery.");
+    g_debug("Reached end of main() in SAP discovery.");
     return EXIT_SUCCESS;
 }

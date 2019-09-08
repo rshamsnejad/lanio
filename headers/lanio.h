@@ -119,6 +119,15 @@ typedef struct _data_insertIncomingSAPPackets
     sqlite3    *Database;
 } data_insertIncomingSAPPackets;
 
+typedef struct _DiscoveryCLIParameters
+{
+    gboolean    Show;
+    gboolean    DiscoverTerminal;
+    gboolean    DiscoverDaemon;
+    gboolean    LogStandard;
+    gboolean    LogJournald;
+} DiscoveryCLIParameters;
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -172,14 +181,15 @@ void setUpSAPPacketLoop(GMainLoop *Loop, GSocket *Socket, sqlite3 *Database);
 
 void discoverSAPAnnouncements(sqlite3 *SDPDatabase);
 
-void parseCommandLineOptions(gboolean *ShowParameter,
-                                gboolean *DiscoverParameter,
-                                    gint argc,
-                                        gchar *argv[]);
+void parseDiscoveryCommandLineOptions(DiscoveryCLIParameters *Parameters,
+                                        gint argc,
+                                            gchar *argv[]);
 
 guint getStringArraySize(gchar **StringArray);
 
 gchar* getSDPDatabasePath(void);
+
+void initDiscoveryCLIParameters(DiscoveryCLIParameters *ParametersToInit);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

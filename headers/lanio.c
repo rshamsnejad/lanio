@@ -625,17 +625,27 @@ void discoverSAPAnnouncements(sqlite3 *SDPDatabase)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void parseCommandLineOptions(gboolean *ShowParameter,
-                                gboolean *DiscoverParameter,
-                                    gint argc,
-                                        gchar *argv[])
+void parseDiscoveryCommandLineOptions(DiscoveryCLIParameters *Parameters,
+                                        gint argc,
+                                            gchar *argv[])
 {
     GOptionEntry CommandLineOptionEntries[] =
     {
-        { "show", 's', 0, G_OPTION_ARG_NONE, ShowParameter,
-            "Show discovered SAP announcements (not compatible with -d)", NULL },
-        { "discover", 'd', 0, G_OPTION_ARG_NONE, DiscoverParameter,
-            "Start SAP announcement discovery (not compatible with -s)", NULL },
+        { "show-discovered", 's', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
+            &Parameters->Show,
+            "Show discovered SAP announcements", NULL },
+        { "discovery-terminal", 'd', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
+            &Parameters->DiscoverTerminal,
+            "Start SAP announcement discovery in the terminal", NULL },
+        { "discovery-daemon", 'D', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
+            &Parameters->DiscoverDaemon,
+            "Start SAP announcement discovery as a daemon", NULL },
+        { "log-std", 'l', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
+            &Parameters->LogStandard,
+            "Output to stdout/stderr", NULL },
+        { "log-journald", 'j', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
+            &Parameters->LogJournald,
+            "Output to journald", NULL },
         /*{ G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_STRING_ARRAY,
             &CommandLineRemainingOptions, "Remaining options", "<optional>"},*/
         { NULL }
@@ -694,11 +704,25 @@ void parseCommandLineOptions(gboolean *ShowParameter,
         exit(EXIT_FAILURE);
     }
 
-    if
-    (
-        !(*ShowParameter || *DiscoverParameter) ||
-        (*ShowParameter && *DiscoverParameter)
-    )
+    gboolean CheckParameters =
+        ( // If both show and discover are on
+            Parameters->Show &&
+            (Parameters->DiscoverTerminal || Parameters->DiscoverDaemon)
+        ) ||
+        !( // If none of show and discover are on
+            Parameters->Show ||
+            (Parameters->DiscoverTerminal || Parameters->DiscoverDaemon)
+        ) ||
+        ( // If both logging options are on
+            Parameters->LogStandard &&
+            Parameters->LogJournald
+        ) ||
+        !( // If none of the logging options are on
+            Parameters->LogStandard ||
+            Parameters->LogJournald
+        );
+
+    if(CheckParameters)
     {
         g_printerr
         (
@@ -788,6 +812,19 @@ gchar* getSDPDatabasePath(void)
     g_free(WorkingDirectory);
 
     return ReturnPath;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void initDiscoveryCLIParameters(DiscoveryCLIParameters *ParametersToInit)
+{
+    ParametersToInit->Show = FALSE;
+    ParametersToInit->DiscoverTerminal = FALSE;
+    ParametersToInit->DiscoverDaemon = FALSE;
+    ParametersToInit->LogStandard = FALSE;
+    ParametersToInit->LogJournald = FALSE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
