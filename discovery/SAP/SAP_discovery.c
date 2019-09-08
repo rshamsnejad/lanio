@@ -39,43 +39,11 @@ gint main(gint argc, gchar *argv[])
     );
     createSAPTable(SDPDatabase);
 
-    // Setting up the SAP packet receiving loop
-        GMainLoop *SAPDiscoveryLoop = g_main_loop_new(NULL, FALSE);
-            // NULL : Use default context
-            // FALSE : Don't run the loop right away
-
-        // Every 3 seconds, delete outdated database entries
-        data_deleteOldSDPEntries TimeoutDeleteData;
-
-        TimeoutDeleteData.DiscoveryLoop = SAPDiscoveryLoop;
-        TimeoutDeleteData.Database = SDPDatabase;
-
-        g_timeout_add
-        (
-            3 * MSEC_IN_SEC,
-            (GSourceFunc) callback_deleteOldSDPEntries,
-            &TimeoutDeleteData
-        );
-
-        // Insert or delete database entries based on incoming SAP packets
-        GSource *SAPSocketMonitoring =
-            g_socket_create_source(SAPSocket, G_IO_IN | G_IO_PRI, NULL);
-                // NULL : No GCancellable needed
-        g_source_attach(SAPSocketMonitoring, NULL);
-            // NULL : Use default context
-
-        data_insertIncomingSAPPackets SAPSocketMonitoringData;
-
-        SAPSocketMonitoringData.DiscoveryLoop = SAPDiscoveryLoop;
-        SAPSocketMonitoringData.Database = SDPDatabase;
-
-        g_source_set_callback
-        (
-            SAPSocketMonitoring,
-            (GSourceFunc) callback_insertIncomingSAPPackets,
-            &SAPSocketMonitoringData,
-            NULL
-        );
+    // Set up the SAP packet receiving loop
+    GMainLoop *SAPDiscoveryLoop = g_main_loop_new(NULL, FALSE);
+        // NULL : Use default context
+        // FALSE : Don't run the loop right away
+    setUpSAPPacketLoop(SAPDiscoveryLoop, SAPSocket, SDPDatabase);
 
     // Start the loop
     g_main_loop_run(SAPDiscoveryLoop);
@@ -84,6 +52,6 @@ gint main(gint argc, gchar *argv[])
     g_main_loop_unref(SAPDiscoveryLoop);
     g_clear_object(&SAPSocket);
     sqlite3_close(SDPDatabase);
-    
+
     return EXIT_SUCCESS;
 }

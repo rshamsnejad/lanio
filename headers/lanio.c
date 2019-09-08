@@ -545,3 +545,47 @@ gboolean checkSAPPacket(SAPPacket *PacketToCheck)
     else
         return TRUE;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void setUpSAPPacketLoop(GMainLoop *Loop, GSocket *Socket, sqlite3 *Database)
+{
+    // Every 3 seconds, delete outdated database entries
+    static data_deleteOldSDPEntries TimeoutDeleteData;
+
+    TimeoutDeleteData.DiscoveryLoop = Loop;
+    TimeoutDeleteData.Database = Database;
+
+    g_timeout_add
+    (
+        3 * MSEC_IN_SEC,
+        (GSourceFunc) callback_deleteOldSDPEntries,
+        &TimeoutDeleteData
+    );
+
+    // Insert or delete database entries based on incoming SAP packets
+    GSource *SAPSocketMonitoring =
+        g_socket_create_source(Socket, G_IO_IN | G_IO_PRI, NULL);
+            // NULL : No GCancellable needed
+    g_source_attach(SAPSocketMonitoring, NULL);
+        // NULL : Use default context
+
+    static data_insertIncomingSAPPackets SAPSocketMonitoringData;
+
+    SAPSocketMonitoringData.DiscoveryLoop = Loop;
+    SAPSocketMonitoringData.Database = Database;
+
+    g_source_set_callback
+    (
+        SAPSocketMonitoring,
+        (GSourceFunc) callback_insertIncomingSAPPackets,
+        &SAPSocketMonitoringData,
+        NULL
+    );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
