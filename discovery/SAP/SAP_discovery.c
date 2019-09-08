@@ -89,7 +89,7 @@ gint main(gint argc, gchar *argv[])
 
         /* Daemon-specific initialization goes here */
         if(ChildPID == 0)
-            g_debug("CHILDEUH");
+            g_info(PROG_LONG_NAME "\n-- Started network discovery");
         /* The Big Loop */
         discoverSAPAnnouncements(SDPDatabase);
     }
@@ -97,5 +97,6 @@ gint main(gint argc, gchar *argv[])
     // g_strfreev(CommandLineRemainingOptions);
     sqlite3_close(SDPDatabase);
 
+    g_debug("Success on discovery.");
     return EXIT_SUCCESS;
 }
