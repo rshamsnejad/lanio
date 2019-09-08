@@ -13,12 +13,12 @@
 
 // === GLib headers ===
 
+#define G_LOG_USE_STRUCTURED                TRUE
 #include <glib.h>
 #include <gio/gio.h>
 
 // === SQLite headers ===
 
-#define G_LOG_USE_STRUCTURED
 #include <sqlite3.h>
 
 ////////////////////////////////////////////////////////////////////////////////
