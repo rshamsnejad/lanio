@@ -514,7 +514,7 @@ gboolean callback_insertIncomingSAPPackets(GSocket *Socket,
 
     ReceivedSAPPAcket = convertSAPStringToStruct(SAPPacketBuffer);
 
-    //printSAPPacket(ReceivedSAPPAcket);
+    printSAPPacket(ReceivedSAPPAcket);
 
     updateSAPTable
     (

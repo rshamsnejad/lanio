@@ -18,6 +18,7 @@ Discover SAP announcement of Dante streams.
 
 gint main(gint argc, gchar *argv[])
 {
+    g_debug("GLib version %u.%u.%u", glib_major_version, glib_minor_version, glib_micro_version);
 
     // Set up an UDP/IPv4 socket for SAP discovery
     GSocket *SAPSocket = NULL;
