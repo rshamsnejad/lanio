@@ -8,8 +8,11 @@
 
 // === Standard C headers ===
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+//#include <errno.h>
+#include <sys/stat.h>
 
 // === GLib headers ===
 
@@ -27,7 +30,9 @@
 
 // === Constants ===
 
-#define LANIO_VERSION                             "<under development>"
+#define PROG_NAME                           "LANIO"
+#define PROG_LONG_NAME                      "LANIO Audio Network I/O"
+#define PROG_VERSION                        "<under development>"
 
 #define SAP_MULTICAST_ADDRESS               "239.255.255.255"
 #define SAP_MULTICAST_PORT                  9875
@@ -48,7 +53,11 @@
 #define SAP_ANNOUNCEMENT_PACKET             0
 #define SAP_DELETION_PACKET                 1
 
-#define SDP_DATABASE_FILENAME               "../SDP.db"
+#define WORKING_HOME_DIRECTORY_NAME   ".lanio"
+#define WORKING_TEMP_DIRECTORY_NAME   "lanio"
+#define WORKING_DIRECTORY_MASK        0744
+
+#define SDP_DATABASE_FILENAME               "SDP.db"
 #define SAP_TABLE_NAME                      "SAPDiscovery"
 
 #define MINUTE                              "60"
@@ -161,7 +170,7 @@ gboolean checkSAPPacket(SAPPacket *PacketToCheck);
 
 void setUpSAPPacketLoop(GMainLoop *Loop, GSocket *Socket, sqlite3 *Database);
 
-void discoverSAPAnnouncements(void);
+void discoverSAPAnnouncements(sqlite3 *SDPDatabase);
 
 void parseCommandLineOptions(gboolean *ShowParameter,
                                 gboolean *DiscoverParameter,
@@ -169,6 +178,8 @@ void parseCommandLineOptions(gboolean *ShowParameter,
                                         gchar *argv[]);
 
 guint getStringArraySize(gchar **StringArray);
+
+gchar* getSDPDatabasePath(void);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

@@ -590,7 +590,7 @@ void setUpSAPPacketLoop(GMainLoop *Loop, GSocket *Socket, sqlite3 *Database)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void discoverSAPAnnouncements(void)
+void discoverSAPAnnouncements(sqlite3 *SDPDatabase)
 {
     // Set up an UDP/IPv4 socket for SAP discovery
     GSocket *SAPSocket = NULL;
@@ -604,12 +604,7 @@ void discoverSAPAnnouncements(void)
     // Subscribe to the SAP Multicast group
     joinMulticastGroup(SAPSocket, SAP_MULTICAST_ADDRESS);
 
-    // Set up the SDP Database file
-    sqlite3 *SDPDatabase = NULL;
-    processSQLiteOpenError
-    (
-        sqlite3_open(SDP_DATABASE_FILENAME, &SDPDatabase)
-    );
+    // Create the SAP table if it does not exist in the database
     createSAPTable(SDPDatabase);
 
     // Set up the SAP packet receiving loop
@@ -624,7 +619,6 @@ void discoverSAPAnnouncements(void)
     // Cleanup section
     g_main_loop_unref(SAPDiscoveryLoop);
     g_clear_object(&SAPSocket);
-    sqlite3_close(SDPDatabase);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -648,7 +642,7 @@ void parseCommandLineOptions(gboolean *ShowParameter,
     };
 
     GOptionContext *CommandLineOptionContext =
-        g_option_context_new("- AES67 SAP discovery");
+        g_option_context_new("- " PROG_LONG_NAME);
 
     g_option_context_set_summary
     (
@@ -658,7 +652,7 @@ void parseCommandLineOptions(gboolean *ShowParameter,
     g_option_context_set_description
     (
         CommandLineOptionContext,
-        "Version " LANIO_VERSION "\nReport bugs to dev@lanio.com"
+        "Version " PROG_VERSION "\nReport bugs to dev@lanio.com"
     );
     g_option_context_add_main_entries
     (
@@ -727,6 +721,73 @@ guint getStringArraySize(gchar **StringArray)
         return g_strv_length(StringArray);
     else
         return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+gchar* getSDPDatabasePath(void)
+{
+    gchar *ReturnPath = NULL;
+
+    gchar *WorkingDirectory =
+        g_strconcat
+        (
+            g_get_home_dir(),
+            "/",
+            WORKING_HOME_DIRECTORY_NAME,
+            NULL
+        );
+
+    gint MkdirReturn =
+        g_mkdir_with_parents(WorkingDirectory, WORKING_DIRECTORY_MASK);
+
+    if(MkdirReturn == 0)
+        ReturnPath =
+            g_strconcat(WorkingDirectory, "/", SDP_DATABASE_FILENAME, NULL);
+    else
+    {
+        g_debug
+        (
+            "Unable to use directory %s. Falling back to temporary directory.",
+            WorkingDirectory
+        );
+
+        WorkingDirectory =
+            g_strconcat
+            (
+                g_get_tmp_dir(),
+                "/",
+                WORKING_TEMP_DIRECTORY_NAME,
+                NULL
+            );
+
+        MkdirReturn =
+            g_mkdir_with_parents(WorkingDirectory, WORKING_DIRECTORY_MASK);
+
+        if(MkdirReturn == 0)
+            ReturnPath =
+                g_strconcat
+                (
+                    WorkingDirectory,
+                    "/",
+                    SDP_DATABASE_FILENAME,
+                    NULL
+                );
+    }
+
+    if(!ReturnPath)
+    {
+        perror("Unable to access working directory : ");
+        exit(EXIT_FAILURE);
+    }
+
+    g_debug("SDP database path : %s", ReturnPath);
+
+    g_free(WorkingDirectory);
+
+    return ReturnPath;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
