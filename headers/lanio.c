@@ -128,21 +128,19 @@ void createSAPTable(sqlite3 *SDPDatabase)
     gchar *SQLiteExecErrorString = NULL;
 
     gchar *SQLQuery =
-        "CREATE TABLE IF NOT EXISTS \
-        " SAP_TABLE_NAME " \
-        ( \
-        id INTEGER PRIMARY KEY AUTOINCREMENT, \
-        timestamp INTEGER DEFAULT " SQLITE_UNIX_CURRENT_TS ", \
-        hash INTEGER UNIQUE, \
-        source VARCHAR, \
-        sdp VARCHAR \
-        ) ; "
-        "CREATE TRIGGER IF NOT EXISTS AFTER UPDATE ON " SAP_TABLE_NAME " \
-        WHEN OLD.timestamp < " SQLITE_UNIX_CURRENT_TS " - (1 * " MINUTE ") \
-        BEGIN \
-        DELETE FROM " SAP_TABLE_NAME " \
-        WHERE id = OLD.id ;\
-        END";
+        "CREATE TABLE IF NOT EXISTS " SAP_TABLE_NAME " "
+        "("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+            "timestamp INTEGER DEFAULT " SQLITE_UNIX_CURRENT_TS ", "
+            "hash INTEGER UNIQUE, "
+            "source VARCHAR, "
+            "sdp VARCHAR "
+        ") ; "
+        "CREATE TRIGGER IF NOT EXISTS AFTER UPDATE ON " SAP_TABLE_NAME " "
+        "WHEN OLD.timestamp < " SQLITE_UNIX_CURRENT_TS " - (1 * " MINUTE ") "
+        "BEGIN DELETE FROM " SAP_TABLE_NAME " "
+        "WHERE id = OLD.id ;"
+        "END";
 
     SQLiteExecErrorCode =
         sqlite3_exec
@@ -344,16 +342,16 @@ void insertSAPPacketInSAPTable(sqlite3 *SDPDatabase, SAPPacket* PacketToInsert)
     gchar *SQLQuery =
         g_strdup_printf
         (
-            "INSERT INTO " SAP_TABLE_NAME " (timestamp, hash, source, sdp) \
-            VALUES \
-            ( \
-                " SQLITE_UNIX_CURRENT_TS_ESCAPED ", \
-                '%d', \
-                '%s', \
-                '%s' \
-            ) \
-            ON CONFLICT (hash) \
-                DO UPDATE SET timestamp = " SQLITE_UNIX_CURRENT_TS_ESCAPED,
+            "INSERT INTO " SAP_TABLE_NAME " (timestamp, hash, source, sdp) "
+            "VALUES "
+            "( "
+                SQLITE_UNIX_CURRENT_TS_ESCAPED ", "
+                "'%d', "
+                "'%s', "
+                "'%s' "
+            ") "
+            "ON CONFLICT (hash) "
+                "DO UPDATE SET timestamp = " SQLITE_UNIX_CURRENT_TS_ESCAPED,
             PacketToInsert->MessageIdentifierHash,
             PacketToInsert->OriginatingSourceAddress,
             PacketToInsert->SDPDescription
@@ -398,8 +396,7 @@ void removeSAPPacketFromSAPTable(sqlite3 *SDPDatabase,
     gchar *SQLQuery =
         g_strdup_printf
         (
-            "DELETE FROM " SAP_TABLE_NAME " \
-            WHERE hash = %d",
+            "DELETE FROM " SAP_TABLE_NAME " WHERE hash = %d",
             PacketToRemove->MessageIdentifierHash
         );
 
@@ -460,8 +457,8 @@ gboolean callback_deleteOldSDPEntries(gpointer Data)
     gchar *SQLiteExecErrorString = NULL;
 
     gchar *SQLQuery =
-        "DELETE FROM " SAP_TABLE_NAME " \
-        WHERE timestamp < " SQLITE_UNIX_CURRENT_TS " - (1 * " MINUTE ")";
+        "DELETE FROM " SAP_TABLE_NAME " "
+        "WHERE timestamp < " SQLITE_UNIX_CURRENT_TS " - (1 * " MINUTE ")";
 
     SQLiteExecErrorCode =
         sqlite3_exec
