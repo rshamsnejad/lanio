@@ -794,3 +794,50 @@ void initDiscoveryCLIParameters(DiscoveryCLIParameters *ParametersToInit)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+void daemonizeDiscovery(void)
+{
+    pid_t ChildPID, ChildSID;
+
+    ChildPID = fork();
+    if(ChildPID < 0)
+    {
+        g_error("Error while forking.");
+        exit(EXIT_FAILURE);
+    }
+
+    if (ChildPID > 0)
+    {
+        g_debug("Successfully forked. PID = %d", ChildPID);
+        g_print(PROG_NAME " SAP discovery daemon started.\n");
+        exit(EXIT_SUCCESS);
+    }
+
+    umask(0);
+
+    // Create a new SID for the child process
+    ChildSID = setsid();
+    if (ChildSID < 0)
+    {
+        g_error("Error while creating SID.");
+        exit(EXIT_FAILURE);
+    }
+    // Change the current working directory to a safe place
+    if ((chdir("/")) < 0)
+    {
+        g_error("Error while changing directory.");
+        exit(EXIT_FAILURE);
+    }
+
+    /* Close out the standard file descriptors */
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
+
+    /* Daemon-specific initialization goes here */
+    g_log_set_writer_func(g_log_writer_journald, NULL, NULL);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
