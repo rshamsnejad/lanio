@@ -119,8 +119,7 @@ gint main(gint argc, gchar *argv[])
         }
 
         /* Daemon-specific initialization goes here */
-        if(ChildPID == 0)
-            g_info(PROG_LONG_NAME "\n-- Started network discovery");
+        g_info(PROG_LONG_NAME "\n-- Started network discovery");
         /* The Big Loop */
         discoverSAPAnnouncements(SDPDatabase);
     }
