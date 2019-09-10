@@ -1,6 +1,6 @@
 /*
 
-SAP_discovery.c
+lanio-discovery.c
 
 Discover SAP announcement of Dante streams.
 
@@ -65,9 +65,9 @@ gint main(gint argc, gchar *argv[])
         discoverSAPAnnouncements(SDPDatabase);
     }
 
-    
+
     sqlite3_close(SDPDatabase);
 
-    g_debug("Reached end of main() in SAP discovery.");
+    g_debug("Reached end of main() in lanio-discovery.c");
     return EXIT_SUCCESS;
 }
