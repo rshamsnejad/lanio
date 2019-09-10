@@ -59,7 +59,7 @@ gint main(gint argc, gchar *argv[])
     }
     else // if(CommandLineParameters.DiscoverDaemon)
     {
-        g_debug(PROG_NAME " Discovery : mode terminal");
+        g_debug(PROG_NAME " Discovery : mode daemon");
 
         daemonizeDiscovery();
 

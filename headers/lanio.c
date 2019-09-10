@@ -374,7 +374,7 @@ void insertSAPPacketInSAPTable(sqlite3 *SDPDatabase, SAPPacket* PacketToInsert)
     );
 
     if(sqlite3_changes(SDPDatabase) > 0)
-        g_info
+        g_debug
         (
             "Inserted or updated SAP entry.\n\tID = 0x%04X",
             PacketToInsert->MessageIdentifierHash
@@ -417,7 +417,7 @@ void removeSAPPacketFromSAPTable(sqlite3 *SDPDatabase,
     );
 
     if(sqlite3_changes(SDPDatabase) > 0)
-        g_info
+        g_debug
         (
             "Removed SAP entry.\n\tID = 0x%04X",
             PacketToRemove->MessageIdentifierHash
@@ -440,7 +440,7 @@ void updateSAPTable(sqlite3 *SDPDatabase, SAPPacket *PacketToProcess)
             removeSAPPacketFromSAPTable(SDPDatabase, PacketToProcess);
     }
     else
-        g_info
+        g_debug
         (
             "Invalid SAP Packet. Ignoring...\n\tID = 0x%04X",
             PacketToProcess->MessageIdentifierHash
