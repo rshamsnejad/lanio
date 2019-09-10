@@ -57,9 +57,9 @@
 #define SAP_ANNOUNCEMENT_PACKET             0
 #define SAP_DELETION_PACKET                 1
 
-#define WORKING_HOME_DIRECTORY_NAME   ".lanio"
-#define WORKING_TEMP_DIRECTORY_NAME   "lanio"
-#define WORKING_DIRECTORY_MASK        0744
+#define WORKING_HOME_DIRECTORY_NAME         ".lanio"
+#define WORKING_TEMP_DIRECTORY_NAME         "lanio"
+#define WORKING_DIRECTORY_MASK              0744
 
 #define SDP_DATABASE_FILENAME               "SDP.db"
 #define SAP_TABLE_NAME                      "SAPDiscovery"
