@@ -10,14 +10,21 @@ LIBS=`pkg-config --libs glib-2.0 gio-2.0 sqlite3`
 _DEPS = lanio.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = lanio-discovery.o $(IDIR)/lanio.o
-OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
+_OBJ_discovery = lanio-discovery.o $(IDIR)/lanio.o
+OBJ_discovery = $(patsubst %,$(ODIR)/%,$(_OBJ_discovery))
+
+_OBJ_list-discovered = lanio-list-discovered.o $(IDIR)/lanio.o
+OBJ_list-discovered = $(patsubst %,$(ODIR)/%,$(_OBJ_list-discovered))
 
 
 $(ODIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-lanio-discovery: $(OBJ)
+all: lanio-discovery lanio-list-discovered
+
+lanio-discovery: $(OBJ_discovery)
+	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+lanio-list-discovered: $(OBJ_list-discovered)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
 .PHONY: clean
