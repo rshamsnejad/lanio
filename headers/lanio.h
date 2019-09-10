@@ -24,6 +24,10 @@
 
 #include <sqlite3.h>
 
+// === libfort headers ===
+
+#include "../lib/fort.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -121,12 +125,29 @@ typedef struct _data_insertIncomingSAPPackets
 
 typedef struct _DiscoveryCLIParameters
 {
-    gboolean    Show;
-    gboolean    DiscoverTerminal;
+    // gboolean    Show;
+    // gboolean    DiscoverTerminal;
     gboolean    DiscoverDaemon;
-    gboolean    LogStandard;
-    gboolean    LogJournald;
+    // gboolean    LogStandard;
+    // gboolean    LogJournald;
 } DiscoveryCLIParameters;
+
+typedef struct _SDPParameters
+{
+    gchar      *SourceType;
+    gchar      *SourceName;
+    gchar      *SourceInfo;
+    gchar      *StreamAddress;
+    guint16     UDPPort;
+    guint8      PayloadType;
+    guint8      BitDepth;
+    guint32     SampleRate;
+    guint8      ChannelCount;
+    guint8      PacketTime;
+    gchar      *ReferenceClockType;
+    gchar      *MasterClockID;
+    guint64     OffsetFromMasterClock;
+} SDPParameters;
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

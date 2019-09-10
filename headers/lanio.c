@@ -628,23 +628,9 @@ void parseDiscoveryCommandLineOptions(DiscoveryCLIParameters *Parameters,
 {
     GOptionEntry CommandLineOptionEntries[] =
     {
-        { "show-discovered", 's', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
-            &Parameters->Show,
-            "Show discovered SAP announcements", NULL },
-        { "discovery-terminal", 'd', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
-            &Parameters->DiscoverTerminal,
-            "Start SAP announcement discovery in the terminal", NULL },
-        { "discovery-daemon", 'D', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
+        { "daemonize", 'D', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
             &Parameters->DiscoverDaemon,
             "Start SAP announcement discovery as a daemon", NULL },
-        { "log-std", 'l', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
-            &Parameters->LogStandard,
-            "Output to stdout/stderr", NULL },
-        { "log-journald", 'j', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
-            &Parameters->LogJournald,
-            "Output to journald", NULL },
-        /*{ G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_STRING_ARRAY,
-            &CommandLineRemainingOptions, "Remaining options", "<optional>"},*/
         { NULL }
     };
 
@@ -701,23 +687,8 @@ void parseDiscoveryCommandLineOptions(DiscoveryCLIParameters *Parameters,
         exit(EXIT_FAILURE);
     }
 
-    gboolean CheckParameters =
-        ( // If both show and discover are on
-            Parameters->Show &&
-            (Parameters->DiscoverTerminal || Parameters->DiscoverDaemon)
-        ) ||
-        !( // If none of show and discover are on
-            Parameters->Show ||
-            (Parameters->DiscoverTerminal || Parameters->DiscoverDaemon)
-        ) ||
-        ( // If both logging options are on
-            Parameters->LogStandard &&
-            Parameters->LogJournald
-        ) ||
-        !( // If none of the logging options are on
-            Parameters->LogStandard ||
-            Parameters->LogJournald
-        );
+
+    gboolean CheckParameters = FALSE;
 
     if(CheckParameters)
     {
@@ -817,11 +788,7 @@ gchar* getSDPDatabasePath(void)
 
 void initDiscoveryCLIParameters(DiscoveryCLIParameters *ParametersToInit)
 {
-    ParametersToInit->Show = FALSE;
-    ParametersToInit->DiscoverTerminal = FALSE;
     ParametersToInit->DiscoverDaemon = FALSE;
-    ParametersToInit->LogStandard = FALSE;
-    ParametersToInit->LogJournald = FALSE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

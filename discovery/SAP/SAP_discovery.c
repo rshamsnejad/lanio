@@ -49,32 +49,15 @@ gint main(gint argc, gchar *argv[])
 
     g_free(SDPDatabasePath);
 
-    if(CommandLineParameters.LogStandard)
-    {
-        g_debug("Output to standard streams");
-
-        g_log_set_writer_func(g_log_writer_standard_streams, NULL, NULL);
-    }
-    else if(CommandLineParameters.LogJournald)
-    {
-        g_debug("Output to journald");
-
-        g_log_set_writer_func(g_log_writer_journald, NULL, NULL);
-    }
-
-    if(CommandLineParameters.Show)
-    {
-        g_debug("Show mode");
-
-        g_print("Teeny weeny streamy\n");
-    }
-    else if(CommandLineParameters.DiscoverTerminal)
+    if(!CommandLineParameters.DiscoverDaemon)
     {
         g_debug("Discover mode, terminal");
 
+        g_log_set_writer_func(g_log_writer_standard_streams, NULL, NULL);
+
         discoverSAPAnnouncements(SDPDatabase);
     }
-    else if(CommandLineParameters.DiscoverDaemon)
+    else // if(CommandLineParameters.DiscoverDaemon)
     {
         g_debug("Discover mode, daemon");
 
@@ -110,15 +93,14 @@ gint main(gint argc, gchar *argv[])
             exit(EXIT_FAILURE);
         }
 
-        if(!CommandLineParameters.LogStandard)
-        {
-            /* Close out the standard file descriptors */
-            close(STDIN_FILENO);
-            close(STDOUT_FILENO);
-            close(STDERR_FILENO);
-        }
+        /* Close out the standard file descriptors */
+        close(STDIN_FILENO);
+        close(STDOUT_FILENO);
+        close(STDERR_FILENO);
 
         /* Daemon-specific initialization goes here */
+        g_log_set_writer_func(g_log_writer_journald, NULL, NULL);
+
         g_info(PROG_LONG_NAME "\n-- Started network discovery");
         /* The Big Loop */
         discoverSAPAnnouncements(SDPDatabase);
