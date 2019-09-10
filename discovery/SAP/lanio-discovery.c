@@ -26,29 +26,26 @@ gint main(gint argc, gchar *argv[])
         glib_micro_version
     );
 
+    // Parse the command-line options
     DiscoveryCLIParameters CommandLineParameters;
     initDiscoveryCLIParameters(&CommandLineParameters);
-
     parseDiscoveryCommandLineOptions
     (
         &CommandLineParameters,
         argc,
-        argv);
-
-    /* guint CommandLineRemainingOptionsSize =
-        getStringArraySize(CommandLineRemainingOptions); */
+        argv
+    );
 
     // Set up the SDP Database file
     gchar *SDPDatabasePath = getSDPDatabasePath();
     sqlite3 *SDPDatabase = NULL;
-
     processSQLiteOpenError
     (
         sqlite3_open(SDPDatabasePath, &SDPDatabase)
     );
-
     g_free(SDPDatabasePath);
 
+    // Start the main loop in the terminal or as a daemon
     if(!CommandLineParameters.DiscoverDaemon)
     {
         g_debug(PROG_NAME " Discovery : mode terminal");
@@ -68,7 +65,7 @@ gint main(gint argc, gchar *argv[])
         discoverSAPAnnouncements(SDPDatabase);
     }
 
-    // g_strfreev(CommandLineRemainingOptions);
+    
     sqlite3_close(SDPDatabase);
 
     g_debug("Reached end of main() in SAP discovery.");
