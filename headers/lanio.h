@@ -150,6 +150,14 @@ typedef struct _SDPParameters
 }
     SDPParameters;
 
+
+typedef struct _ListDiscoveredCLIParameters
+{
+    gboolean    CSV;
+    gchar      *StreamCategory;
+}
+    ListDiscoveredCLIParameters;
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -214,6 +222,13 @@ gchar* getSDPDatabasePath(void);
 void initDiscoveryCLIParameters(DiscoveryCLIParameters *ParametersToInit);
 
 void daemonizeDiscovery(void);
+
+void initListDiscoveredCLIParameters
+        (ListDiscoveredCLIParameters *ParametersToInit);
+
+void parseListDiscoveredCLIOptions(ListDiscoveredCLIParameters *Parameters,
+                                        gint argc,
+                                            gchar *argv[]);
 
 void checkCLIParameters(gboolean Expression, GOptionContext *Context);
 

@@ -27,16 +27,14 @@ gint main(gint argc, gchar *argv[])
     );
 
     // Parse the command-line options
-    /*
-    DiscoveryCLIParameters CommandLineParameters;
-    initDiscoveryCLIParameters(&CommandLineParameters);
-    parseDiscoveryCommandLineOptions
+    ListDiscoveredCLIParameters CommandLineParameters;
+    initListDiscoveredCLIParameters(&CommandLineParameters);
+    parseListDiscoveredCLIOptions
     (
         &CommandLineParameters,
         argc,
         argv
     );
-    */
 
     // Set up the SDP Database file
     gchar *SDPDatabasePath = getSDPDatabasePath();

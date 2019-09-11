@@ -835,6 +835,101 @@ void daemonizeDiscovery(void)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+void initListDiscoveredCLIParameters
+        (ListDiscoveredCLIParameters *ParametersToInit)
+{
+    ParametersToInit->CSV = FALSE;
+    ParametersToInit->StreamCategory = NULL;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void parseListDiscoveredCLIOptions(ListDiscoveredCLIParameters *Parameters,
+                                        gint argc,
+                                            gchar *argv[])
+{
+    GOptionEntry CommandLineOptionEntries[] =
+    {
+        { "ugly", 'u', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
+            &Parameters->CSV,
+            "Display the available streams in ugly CSV values "
+                "instead of nice ASCII tables",
+            NULL },
+        { "categories", 'c', G_OPTION_FLAG_NONE, G_OPTION_ARG_STRING,
+            &Parameters->StreamCategory,
+            "Display only the selected category of streams.\n"
+            "Possible options : (dante|ravenna|files)",
+            NULL },
+        { NULL }
+    };
+
+    GOptionContext *CommandLineOptionContext =
+        g_option_context_new("- " PROG_LONG_NAME);
+
+    g_option_context_set_summary
+    (
+        CommandLineOptionContext,
+        "List discovered AES67 streams by lanio-discovery"
+    );
+    g_option_context_set_description
+    (
+        CommandLineOptionContext,
+        "Version " PROG_VERSION "\nReport bugs to dev@lanio.com"
+    );
+    g_option_context_add_main_entries
+    (
+        CommandLineOptionContext,
+        CommandLineOptionEntries,
+        NULL
+    );
+        /*
+        GStreamer options are added with :
+        g_option_context_add_group
+        (
+            CommandLineOptionContext,
+            gst_init_get_option_group()
+        );
+        */
+
+    GError *CommandLineOptionError = NULL;
+
+    gboolean CommandLineOptionParseReturn =
+        g_option_context_parse
+        (
+            CommandLineOptionContext,
+            &argc,
+            &argv,
+            &CommandLineOptionError
+        );
+
+    if(!CommandLineOptionParseReturn)
+    {
+        g_warning
+        (
+            "Error in command line : %s\n",
+            CommandLineOptionError->message
+        );
+
+        g_clear_error(&CommandLineOptionError);
+        g_option_context_free(CommandLineOptionContext);
+
+        exit(EXIT_FAILURE);
+    }
+
+
+    gboolean CheckParameters = TRUE;
+
+    checkCLIParameters(CheckParameters, CommandLineOptionContext);
+
+    g_option_context_free(CommandLineOptionContext);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
 void checkCLIParameters(gboolean Expression, GOptionContext *Context)
 {
     if(!Expression)
