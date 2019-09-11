@@ -51,7 +51,14 @@ gint main(gint argc, gchar *argv[])
     );
     g_free(SDPDatabasePath);
 
-    g_print("List of Streamz\n");
+    if(CommandLineParameters.CSV)
+    {
+        g_print("Ugly List of Streamz\n");
+    }
+    else // if(!CommandLineParameters.CSV)
+    {
+        g_print("Pretty List of Streamz\n");
+    }
 
     sqlite3_close(SDPDatabase);
 
