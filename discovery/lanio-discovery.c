@@ -29,7 +29,7 @@ gint main(gint argc, gchar *argv[])
     // Parse the command-line options
     DiscoveryCLIParameters CommandLineParameters;
     initDiscoveryCLIParameters(&CommandLineParameters);
-    parseDiscoveryCommandLineOptions
+    parseDiscoveryCLIOptions
     (
         &CommandLineParameters,
         argc,
@@ -46,7 +46,7 @@ gint main(gint argc, gchar *argv[])
     g_free(SDPDatabasePath);
 
     // Start the main loop in the terminal or as a daemon
-    if(!CommandLineParameters.DiscoverDaemon)
+    if(CommandLineParameters.DiscoverTerminal)
     {
         g_debug(PROG_NAME " Discovery : mode terminal");
 
@@ -54,7 +54,7 @@ gint main(gint argc, gchar *argv[])
 
         discoverSAPAnnouncements(SDPDatabase);
     }
-    else // if(CommandLineParameters.DiscoverDaemon)
+    else // if(!CommandLineParameters.DiscoverTerminal)
     {
         g_debug(PROG_NAME " Discovery : mode daemon");
 

@@ -128,7 +128,7 @@ typedef struct _data_insertIncomingSAPPackets
 
 typedef struct _DiscoveryCLIParameters
 {
-    gboolean    DiscoverDaemon;
+    gboolean    DiscoverTerminal;
 }
     DiscoveryCLIParameters;
 
@@ -203,9 +203,9 @@ void setUpSAPPacketLoop(GMainLoop *Loop, GSocket *Socket, sqlite3 *Database);
 
 void discoverSAPAnnouncements(sqlite3 *SDPDatabase);
 
-void parseDiscoveryCommandLineOptions(DiscoveryCLIParameters *Parameters,
-                                        gint argc,
-                                            gchar *argv[]);
+void parseDiscoveryCLIOptions(DiscoveryCLIParameters *Parameters,
+                                gint argc,
+                                    gchar *argv[]);
 
 guint getStringArraySize(gchar **StringArray);
 

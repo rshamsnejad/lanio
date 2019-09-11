@@ -622,15 +622,16 @@ void discoverSAPAnnouncements(sqlite3 *SDPDatabase)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void parseDiscoveryCommandLineOptions(DiscoveryCLIParameters *Parameters,
-                                        gint argc,
-                                            gchar *argv[])
+void parseDiscoveryCLIOptions(DiscoveryCLIParameters *Parameters,
+                                gint argc,
+                                    gchar *argv[])
 {
     GOptionEntry CommandLineOptionEntries[] =
     {
-        { "daemonize", 'D', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
-            &Parameters->DiscoverDaemon,
-            "Start SAP announcement discovery as a daemon", NULL },
+        { "terminal", 't', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
+            &Parameters->DiscoverTerminal,
+            "Start stream discovery in the terminal instead of as a daemon",
+            NULL },
         { NULL }
     };
 
@@ -788,7 +789,7 @@ gchar* getSDPDatabasePath(void)
 
 void initDiscoveryCLIParameters(DiscoveryCLIParameters *ParametersToInit)
 {
-    ParametersToInit->DiscoverDaemon = FALSE;
+    ParametersToInit->DiscoverTerminal = FALSE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
