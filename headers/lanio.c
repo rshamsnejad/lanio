@@ -689,17 +689,9 @@ void parseDiscoveryCLIOptions(DiscoveryCLIParameters *Parameters,
     }
 
 
-    gboolean CheckParameters = FALSE;
+    gboolean CheckParameters = TRUE;
 
-    if(CheckParameters)
-    {
-        g_printerr
-        (
-            "%s\n",
-            g_option_context_get_help(CommandLineOptionContext, TRUE, NULL)
-        );
-        exit(EXIT_FAILURE);
-    }
+    checkCLIParameters(CheckParameters, CommandLineOptionContext);
 
     g_option_context_free(CommandLineOptionContext);
 }
@@ -842,3 +834,16 @@ void daemonizeDiscovery(void)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+void checkCLIParameters(gboolean Expression, GOptionContext *Context)
+{
+    if(!Expression)
+    {
+        g_printerr
+        (
+            "%s\n",
+            g_option_context_get_help(Context, TRUE, NULL)
+        );
+        exit(EXIT_FAILURE);
+    }
+}
