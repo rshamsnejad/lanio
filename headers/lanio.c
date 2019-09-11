@@ -838,7 +838,7 @@ void parseListDiscoveredCLIOptions(ListDiscoveredCLIParameters *Parameters,
     g_option_context_set_summary
     (
         CommandLineOptionContext,
-        "List discovered AES67 streams by lanio-discovery"
+        "List AES67 streams discovered by lanio-discovery"
     );
     g_option_context_set_description
     (
@@ -897,7 +897,7 @@ void parseCLIContext(GOptionContext *Context, gint argc, gchar *argv[])
             "Error in command line : %s\n",
             Error->message
         );
-        
+
         PRINT_CLI_HELP(Context);
 
         g_option_context_free(Context);
