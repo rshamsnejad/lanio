@@ -16,15 +16,20 @@ OBJ_discovery = $(patsubst %,$(ODIR)/%,$(_OBJ_discovery))
 _OBJ_list-discovered = lanio-list-discovered.o $(IDIR)/lanio.o
 OBJ_list-discovered = $(patsubst %,$(ODIR)/%,$(_OBJ_list-discovered))
 
+_OBJ_parsesdp = parsesdp.o $(IDIR)/lanio.o
+OBJ_parsesdp = $(patsubst %,$(ODIR)/%,$(_OBJ_parsesdp))
+
 
 $(ODIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-all: lanio-discovery lanio-list-discovered
+all: lanio-discovery lanio-list-discovered parsesdp
 
 lanio-discovery: $(OBJ_discovery)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 lanio-list-discovered: $(OBJ_list-discovered)
+	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+parsesdp: $(OBJ_parsesdp)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
 .PHONY: clean
