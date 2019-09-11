@@ -125,11 +125,7 @@ typedef struct _data_insertIncomingSAPPackets
 
 typedef struct _DiscoveryCLIParameters
 {
-    // gboolean    Show;
-    // gboolean    DiscoverTerminal;
     gboolean    DiscoverDaemon;
-    // gboolean    LogStandard;
-    // gboolean    LogJournald;
 } DiscoveryCLIParameters;
 
 typedef struct _SDPParameters
