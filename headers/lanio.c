@@ -868,11 +868,7 @@ void checkCLIParameters(gboolean Expression, GOptionContext *Context)
 {
     if(!Expression)
     {
-        g_printerr
-        (
-            "%s\n",
-            g_option_context_get_help(Context, TRUE, NULL)
-        );
+        PRINT_CLI_HELP(Context);
         exit(EXIT_FAILURE);
     }
 }
@@ -901,6 +897,8 @@ void parseCLIContext(GOptionContext *Context, gint argc, gchar *argv[])
             "Error in command line : %s\n",
             Error->message
         );
+        
+        PRINT_CLI_HELP(Context);
 
         g_option_context_free(Context);
         exit(EXIT_FAILURE);
