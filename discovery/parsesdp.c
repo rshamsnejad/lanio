@@ -33,6 +33,43 @@ gint main(gint argc, gchar *argv[])
         "a=ts-refclk:ptp=IEEE1588-2008:00-1D-C1-FF-FE-0D-A9-88:0\n"
         "a=mediaclk:direct=1057709823\n";
 
-    g_print("SDP :\n%s\n", sdp);
+    g_print("\t==== SDP :\n%s", sdp);
+
+    gchar **StringArray = g_strsplit(sdp, "\n", 0);
+
+    g_print("\t==== String array :\n");
+
+    for
+    (
+        gsize i = 0;
+        StringArray[i] != NULL && StringArray[i][0] != '\0';
+        i++
+    )
+    {
+        g_print("%s\n", StringArray[i]);
+    }
+
+    gchar **ParameterArray = NULL;
+
+    g_print("\t==== String array of string arrays :\n");
+
+    for
+    (
+        gsize i = 0;
+        StringArray[i] != NULL && StringArray[i][0] != '\0';
+        i++
+    )
+    {
+        ParameterArray = g_strsplit(StringArray[i], "=", 2);
+
+        g_print("%s", ParameterArray[0]);
+        g_print("\t%s\n", ParameterArray[1]);
+
+        // TODO : g_regex for parsing ParameterArray[1]
+
+        g_strfreev(ParameterArray);
+    }
+
+    g_strfreev(StringArray);
     return EXIT_SUCCESS;
 }
