@@ -654,43 +654,10 @@ void parseDiscoveryCLIOptions(DiscoveryCLIParameters *Parameters,
         CommandLineOptionEntries,
         NULL
     );
-        /*
-        GStreamer options are added with :
-        g_option_context_add_group
-        (
-            CommandLineOptionContext,
-            gst_init_get_option_group()
-        );
-        */
 
-    GError *CommandLineOptionError = NULL;
-
-    gboolean CommandLineOptionParseReturn =
-        g_option_context_parse
-        (
-            CommandLineOptionContext,
-            &argc,
-            &argv,
-            &CommandLineOptionError
-        );
-
-    if(!CommandLineOptionParseReturn)
-    {
-        g_warning
-        (
-            "Error in command line : %s\n",
-            CommandLineOptionError->message
-        );
-
-        g_clear_error(&CommandLineOptionError);
-        g_option_context_free(CommandLineOptionContext);
-
-        exit(EXIT_FAILURE);
-    }
-
+    parseCLIContext(CommandLineOptionContext, argc, argv);
 
     gboolean CheckParameters = TRUE;
-
     checkCLIParameters(CheckParameters, CommandLineOptionContext);
 
     g_option_context_free(CommandLineOptionContext);
@@ -884,43 +851,10 @@ void parseListDiscoveredCLIOptions(ListDiscoveredCLIParameters *Parameters,
         CommandLineOptionEntries,
         NULL
     );
-        /*
-        GStreamer options are added with :
-        g_option_context_add_group
-        (
-            CommandLineOptionContext,
-            gst_init_get_option_group()
-        );
-        */
 
-    GError *CommandLineOptionError = NULL;
-
-    gboolean CommandLineOptionParseReturn =
-        g_option_context_parse
-        (
-            CommandLineOptionContext,
-            &argc,
-            &argv,
-            &CommandLineOptionError
-        );
-
-    if(!CommandLineOptionParseReturn)
-    {
-        g_warning
-        (
-            "Error in command line : %s\n",
-            CommandLineOptionError->message
-        );
-
-        g_clear_error(&CommandLineOptionError);
-        g_option_context_free(CommandLineOptionContext);
-
-        exit(EXIT_FAILURE);
-    }
-
+    parseCLIContext(CommandLineOptionContext, argc, argv);
 
     gboolean CheckParameters = TRUE;
-
     checkCLIParameters(CheckParameters, CommandLineOptionContext);
 
     g_option_context_free(CommandLineOptionContext);
@@ -942,3 +876,39 @@ void checkCLIParameters(gboolean Expression, GOptionContext *Context)
         exit(EXIT_FAILURE);
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void parseCLIContext(GOptionContext *Context, gint argc, gchar *argv[])
+{
+    GError *Error = NULL;
+
+    gboolean ParseReturn =
+        g_option_context_parse
+        (
+            Context,
+            &argc,
+            &argv,
+            &Error
+        );
+
+    if(!ParseReturn)
+    {
+        g_warning
+        (
+            "Error in command line : %s\n",
+            Error->message
+        );
+
+        g_option_context_free(Context);
+        exit(EXIT_FAILURE);
+    }
+
+    g_clear_error(&Error);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
