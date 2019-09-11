@@ -109,24 +109,28 @@ typedef struct _SAPPacket
     gchar      *OriginatingSourceAddress;
     gchar      *PayloadType;
     gchar      *SDPDescription;
-} SAPPacket;
+}
+    SAPPacket;
 
 typedef struct _data_deleteOldSDPEntries
 {
     GMainLoop  *DiscoveryLoop;
     sqlite3    *Database;
-} data_deleteOldSDPEntries;
+}
+    data_deleteOldSDPEntries;
 
 typedef struct _data_insertIncomingSAPPackets
 {
     GMainLoop  *DiscoveryLoop;
     sqlite3    *Database;
-} data_insertIncomingSAPPackets;
+}
+    data_insertIncomingSAPPackets;
 
 typedef struct _DiscoveryCLIParameters
 {
     gboolean    DiscoverDaemon;
-} DiscoveryCLIParameters;
+}
+    DiscoveryCLIParameters;
 
 typedef struct _SDPParameters
 {
@@ -143,7 +147,8 @@ typedef struct _SDPParameters
     gchar      *ReferenceClockType;
     gchar      *MasterClockID;
     guint64     OffsetFromMasterClock;
-} SDPParameters;
+}
+    SDPParameters;
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
