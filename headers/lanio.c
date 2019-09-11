@@ -641,7 +641,7 @@ void parseDiscoveryCLIOptions(DiscoveryCLIParameters *Parameters,
     g_option_context_set_summary
     (
         CommandLineOptionContext,
-        "Discover SAP annoucements of AES67 streams available on the network"
+        "Discover AES67 streams available on the network"
     );
     g_option_context_set_description
     (
