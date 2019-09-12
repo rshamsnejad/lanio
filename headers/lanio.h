@@ -80,8 +80,9 @@
 
 #define REGEX_SDP_VALUE_MEDIA \
     "^audio (?P<port>[[:digit:]]{1,5}) RTP\\/AVP (?P<payload>[[:digit:]]{1,3})$"
-#define REGEX_SDP_VALUE_ATTRIBUTE \
 
+#define REGEX_SDP_VALUE_ATTRIBUTE \
+    "^(?P<key>[[:alnum:]-]+)(?::(?P<value>[[:alnum:][:digit:][:punct:] ]+))?$"
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

@@ -44,18 +44,6 @@ gint main(gint argc, gchar *argv[])
 
     gchar **StringArray = g_strsplit(SDPString, "\n", 0);
 
-    // g_print("\t==== String array :\n");
-    //
-    // for
-    // (
-    //     gsize i = 0;
-    //     StringArray[i] != NULL && StringArray[i][0] != '\0';
-    //     i++
-    // )
-    // {
-    //     g_print("%s\n", StringArray[i]);
-    // }
-
     gchar **ParameterArray = NULL;
     gboolean RegexCheck = FALSE;
 
@@ -168,6 +156,49 @@ gint main(gint argc, gchar *argv[])
             g_free(PayloadString);
             g_match_info_free(RegexMediaMatchInfo);
             g_regex_unref(RegexMedia);
+        }
+
+        if(g_strcmp0(ParameterArray[0],"a") == 0)
+        {
+            GError *RegexAttributeError = NULL;
+            GRegex *RegexAttribute =
+                g_regex_new
+                (
+                    REGEX_SDP_VALUE_ATTRIBUTE,
+                    G_REGEX_CASELESS,
+                    G_REGEX_MATCH_NOTEMPTY,
+                    &RegexAttributeError
+                );
+            processGError("Error with regex for a=", RegexAttributeError);
+
+            GMatchInfo *RegexAttributeMatchInfo = NULL;
+
+            RegexCheck =
+                g_regex_match
+                (
+                    RegexAttribute,
+                    ParameterArray[1],
+                    G_REGEX_MATCH_NOTEMPTY,
+                    &RegexAttributeMatchInfo
+                );
+
+            g_print
+            (
+                "--------%s--------\n",
+                RegexCheck ? "VALID" : "INVALID"
+            );
+
+            gchar *KeyString =
+                g_match_info_fetch_named(RegexAttributeMatchInfo, "key");
+            gchar *ValueString =
+                g_match_info_fetch_named(RegexAttributeMatchInfo, "value");
+            g_print("\t\tKey = %s\n", KeyString);
+            g_print("\t\tValue = %s\n", ValueString);
+
+            g_free(KeyString);
+            g_free(ValueString);
+            g_match_info_free(RegexAttributeMatchInfo);
+            g_regex_unref(RegexAttribute);
         }
 
         g_strfreev(ParameterArray);
