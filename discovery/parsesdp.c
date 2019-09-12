@@ -57,6 +57,7 @@ gint main(gint argc, gchar *argv[])
     // }
 
     gchar **ParameterArray = NULL;
+    gboolean RegexCheck = FALSE;
 
     g_print("\t==== String array of string arrays :\n");
 
@@ -72,7 +73,45 @@ gint main(gint argc, gchar *argv[])
         g_print("%s", ParameterArray[0]);
         g_print("\t%s\n", ParameterArray[1]);
 
-        // TODO : g_regex for parsing ParameterArray[1]
+        if(g_strcmp0(ParameterArray[0],"c") == 0)
+        {
+            RegexCheck =
+                g_regex_match_simple
+                (
+                    REGEX_SDP_VALUE_CONNECTION,
+                    ParameterArray[1],
+                    G_REGEX_CASELESS,
+                    G_REGEX_MATCH_NOTEMPTY
+                );
+            g_print
+            (
+                "--------%s--------\n",
+                RegexCheck ? "VALID" : "INVALID"
+            );
+
+            gchar **ConnectionArray = g_strsplit(ParameterArray[1], " ", 3);
+
+            RegexCheck =
+                g_regex_match_simple
+                (
+                    REGEX_IP_WITH_CIDR,
+                    ConnectionArray[2],
+                    G_REGEX_CASELESS,
+                    G_REGEX_MATCH_NOTEMPTY
+                );
+            gboolean CheckConnection =
+                g_strcmp0(ConnectionArray[0], "IN") == 0 &&
+                g_strcmp0(ConnectionArray[1], "IP4") == 0 &&
+                RegexCheck; // REGEX TO FIX
+
+            g_print
+            (
+                "\t\t%s IPv4 address\n",
+                CheckConnection ? "Valid" : "Invalid"
+            );
+
+            g_strfreev(ConnectionArray);
+        }
 
         g_strfreev(ParameterArray);
     }

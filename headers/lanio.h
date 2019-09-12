@@ -75,7 +75,9 @@
 #define REGEX_SDP_VALUE_ORIGIN \
 
 #define REGEX_SDP_VALUE_CONNECTION \
-
+        "^([[:alnum:]])+\\s([[:alnum:]])+\\s([[:alnum:]|[:punct:]])+$"
+#define REGEX_IP_WITH_CIDR \
+        "^([[:digit]]{1,3}\\.){3}([[:digit]]{1,3}){1}\\/[[:digit:]]{1,2}$"
 #define REGEX_SDP_VALUE_TIMING \
 
 #define REGEX_SDP_VALUE_MEDIA \
