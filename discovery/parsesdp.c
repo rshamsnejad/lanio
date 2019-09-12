@@ -37,24 +37,24 @@ gint main(gint argc, gchar *argv[])
 
     g_print
     (
-        "\n---------------%s---------------\n",
+        "\n---------------%s---------------\n\n",
         checkValidSDP(SDPString) ? "VALID" : "INVALID"
     );
 
-    /*
-    gchar **StringArray = g_strsplit(sdp, "\n", 0);
 
-    g_print("\t==== String array :\n");
+    gchar **StringArray = g_strsplit(SDPString, "\n", 0);
 
-    for
-    (
-        gsize i = 0;
-        StringArray[i] != NULL && StringArray[i][0] != '\0';
-        i++
-    )
-    {
-        g_print("%s\n", StringArray[i]);
-    }
+    // g_print("\t==== String array :\n");
+    //
+    // for
+    // (
+    //     gsize i = 0;
+    //     StringArray[i] != NULL && StringArray[i][0] != '\0';
+    //     i++
+    // )
+    // {
+    //     g_print("%s\n", StringArray[i]);
+    // }
 
     gchar **ParameterArray = NULL;
 
@@ -77,7 +77,7 @@ gint main(gint argc, gchar *argv[])
         g_strfreev(ParameterArray);
     }
 
-    g_strfreev(StringArray); */
+    g_strfreev(StringArray);
 
     return EXIT_SUCCESS;
 }

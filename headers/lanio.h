@@ -74,7 +74,7 @@
         "^(v|o|s|i|u|e|p|c|b|z|k|a|t|r|m)=([[:alnum:]|[:blank:]|[:punct:]]*)$"
 #define REGEX_SDP_VALUE_ORIGIN \
 
-#define REGEX_SDP_VALUE_CCONNECTION \
+#define REGEX_SDP_VALUE_CONNECTION \
 
 #define REGEX_SDP_VALUE_TIMING \
 
