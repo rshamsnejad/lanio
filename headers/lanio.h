@@ -71,17 +71,15 @@
 #define MSEC_IN_SEC                         1000
 
 #define REGEX_SDP \
-        "^(v|o|s|i|u|e|p|c|b|z|k|a|t|r|m)=([[:alnum:]|[:blank:]|[:punct:]]*)$"
+    "^(?:v|o|s|i|u|e|p|c|b|z|k|a|t|r|m)=([[:alnum:]|[:blank:]|[:punct:]]+)$"
+
 #define REGEX_SDP_VALUE_ORIGIN \
 
 #define REGEX_SDP_VALUE_CONNECTION \
-        "^([[:alnum:]])+\\s([[:alnum:]])+\\s([[:alnum:]|[:punct:]])+$"
-#define REGEX_IP_WITH_CIDR \
-        "^([[:digit]]{1,3}\\.){3}([[:digit]]{1,3}){1}\\/[[:digit:]]{1,2}$"
-#define REGEX_SDP_VALUE_TIMING \
+    "^IN IP4 (?P<address>(?:[[:digit:]]{1,3}\\.){3}(?:[[:digit:]]{1,3}){1})\\/(?P<ttl>[[:digit:]]{1,2})$"
 
 #define REGEX_SDP_VALUE_MEDIA \
-
+    "^audio (?P<port>[[:digit:]]{1,5}) RTP\\/AVP (?P<payload>[[:digit:]]{1,3})$"
 #define REGEX_SDP_VALUE_ATTRIBUTE \
 
 

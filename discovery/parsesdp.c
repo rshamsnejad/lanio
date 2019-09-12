@@ -75,42 +75,99 @@ gint main(gint argc, gchar *argv[])
 
         if(g_strcmp0(ParameterArray[0],"c") == 0)
         {
-            RegexCheck =
-                g_regex_match_simple
+            GError *RegexConnectionError = NULL;
+            GRegex *RegexConnection =
+                g_regex_new
                 (
                     REGEX_SDP_VALUE_CONNECTION,
-                    ParameterArray[1],
                     G_REGEX_CASELESS,
-                    G_REGEX_MATCH_NOTEMPTY
+                    G_REGEX_MATCH_NOTEMPTY,
+                    &RegexConnectionError
                 );
+            processGError("Error with regex for c=", RegexConnectionError);
+
+            GMatchInfo *RegexConnectionMatchInfo = NULL;
+
+            RegexCheck =
+                g_regex_match
+                (
+                    RegexConnection,
+                    ParameterArray[1],
+                    G_REGEX_MATCH_NOTEMPTY,
+                    &RegexConnectionMatchInfo
+                );
+
             g_print
             (
                 "--------%s--------\n",
                 RegexCheck ? "VALID" : "INVALID"
             );
 
-            gchar **ConnectionArray = g_strsplit(ParameterArray[1], " ", 3);
+            gchar *AddressString =
+                g_match_info_fetch_named(RegexConnectionMatchInfo, "address");
+            gchar *TTLString =
+                g_match_info_fetch_named(RegexConnectionMatchInfo, "ttl");
+            g_print("\t\tAddress = %s\n", AddressString);
+            g_print("\t\tTTL = %s\n", TTLString);
 
-            RegexCheck =
-                g_regex_match_simple
-                (
-                    REGEX_IP_WITH_CIDR,
-                    ConnectionArray[2],
-                    G_REGEX_CASELESS,
-                    G_REGEX_MATCH_NOTEMPTY
-                );
-            gboolean CheckConnection =
-                g_strcmp0(ConnectionArray[0], "IN") == 0 &&
-                g_strcmp0(ConnectionArray[1], "IP4") == 0 &&
-                RegexCheck; // REGEX TO FIX
+            g_free(AddressString);
+            g_free(TTLString);
+            g_match_info_free(RegexConnectionMatchInfo);
+            g_regex_unref(RegexConnection);
+        }
+
+        if(g_strcmp0(ParameterArray[0],"t") == 0)
+        {
+            RegexCheck = g_strcmp0(ParameterArray[1],"0 0") == 0;
 
             g_print
             (
-                "\t\t%s IPv4 address\n",
-                CheckConnection ? "Valid" : "Invalid"
+                "--------%s--------\n",
+                RegexCheck ? "VALID ; Permanent." : "INVALID"
+            );
+        }
+
+        if(g_strcmp0(ParameterArray[0],"m") == 0)
+        {
+            GError *RegexMediaError = NULL;
+            GRegex *RegexMedia =
+                g_regex_new
+                (
+                    REGEX_SDP_VALUE_MEDIA,
+                    G_REGEX_CASELESS,
+                    G_REGEX_MATCH_NOTEMPTY,
+                    &RegexMediaError
+                );
+            processGError("Error with regex for m=", RegexMediaError);
+
+            GMatchInfo *RegexMediaMatchInfo = NULL;
+
+            RegexCheck =
+                g_regex_match
+                (
+                    RegexMedia,
+                    ParameterArray[1],
+                    G_REGEX_MATCH_NOTEMPTY,
+                    &RegexMediaMatchInfo
+                );
+
+            g_print
+            (
+                "--------%s--------\n",
+                RegexCheck ? "VALID" : "INVALID"
             );
 
-            g_strfreev(ConnectionArray);
+            gchar *PortString =
+                g_match_info_fetch_named(RegexMediaMatchInfo, "port");
+            gchar *PayloadString =
+                g_match_info_fetch_named(RegexMediaMatchInfo, "payload");
+            g_print("\t\tPort = %s\n", PortString);
+            g_print("\t\tPayload = %s\n", PayloadString);
+
+            g_free(PortString);
+            g_free(PayloadString);
+            g_match_info_free(RegexMediaMatchInfo);
+            g_regex_unref(RegexMedia);
         }
 
         g_strfreev(ParameterArray);
