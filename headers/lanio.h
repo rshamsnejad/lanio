@@ -70,6 +70,19 @@
 
 #define MSEC_IN_SEC                         1000
 
+#define REGEX_SDP \
+        "^(v|o|s|i|u|e|p|c|b|z|k|a|t|r|m)=([[:alnum:]|[:blank:]|[:punct:]]*)$"
+#define REGEX_SDP_VALUE_ORIGIN \
+
+#define REGEX_SDP_VALUE_CCONNECTION \
+
+#define REGEX_SDP_VALUE_TIMING \
+
+#define REGEX_SDP_VALUE_MEDIA \
+
+#define REGEX_SDP_VALUE_ATTRIBUTE \
+
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -240,6 +253,8 @@ void parseListDiscoveredCLIOptions(ListDiscoveredCLIParameters *Parameters,
 void checkCLIParameters(gboolean Expression, GOptionContext *Context);
 
 void parseCLIContext(GOptionContext *Context, gint argc, gchar *argv[]);
+
+gboolean checkValidSDP(gchar *sdp);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
