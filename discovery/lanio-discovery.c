@@ -41,7 +41,13 @@ gint main(gint argc, gchar *argv[])
     sqlite3 *SDPDatabase = NULL;
     processSQLiteOpenError
     (
-        sqlite3_open(SDPDatabasePath, &SDPDatabase)
+        sqlite3_open_v2
+        (
+            SDPDatabasePath,
+            &SDPDatabase,
+            SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX,
+            NULL
+        )
     );
     g_free(SDPDatabasePath);
 
