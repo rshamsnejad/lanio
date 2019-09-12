@@ -18,7 +18,7 @@ List available streams discovered by lanio-discovery.
 
 gint main(gint argc, gchar *argv[])
 {
-    gchar sdp[] =
+    gchar SDPString[] =
         "v=0\n"
         "o=- 3287835752 3287835752 IN IP4 192.168.0.102\n"
         "s=DIGISUPPORT-AudiowayBridge : 32\n"
@@ -33,12 +33,12 @@ gint main(gint argc, gchar *argv[])
         "a=ts-refclk:ptp=IEEE1588-2008:00-1D-C1-FF-FE-0D-A9-88:0\n"
         "a=mediaclk:direct=1057709823\n";
 
-    g_print("\t==== SDP :\n%s", sdp);
+    g_print("\t==== SDP :\n%s", SDPString);
 
     g_print
     (
-        "\n---------------%s------------------\n",
-        checkValidSDP(sdp) ? "VALID" : "INVALID"
+        "\n---------------%s---------------\n",
+        checkValidSDP(SDPString) ? "VALID" : "INVALID"
     );
 
     /*
@@ -78,5 +78,6 @@ gint main(gint argc, gchar *argv[])
     }
 
     g_strfreev(StringArray); */
+
     return EXIT_SUCCESS;
 }
