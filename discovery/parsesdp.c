@@ -125,24 +125,14 @@ gint main(gint argc, gchar *argv[])
         // SDP Media section "m="
         if(g_strcmp0(ParameterArray[0],"m") == 0)
         {
-            GError *RegexMediaError = NULL;
-            GRegex *RegexMedia =
-                g_regex_new
-                (
-                    REGEX_SDP_VALUE_MEDIA,
-                    G_REGEX_CASELESS,
-                    G_REGEX_MATCH_NOTEMPTY,
-                    &RegexMediaError
-                );
-            processGError("Error with regex for m=", RegexMediaError);
-
             GMatchInfo *RegexMediaMatchInfo = NULL;
 
             RegexCheck =
-                g_regex_match
+                checkRegex
                 (
-                    RegexMedia,
+                    REGEX_SDP_VALUE_MEDIA,
                     ParameterArray[1],
+                    G_REGEX_CASELESS,
                     G_REGEX_MATCH_NOTEMPTY,
                     &RegexMediaMatchInfo
                 );
@@ -163,33 +153,21 @@ gint main(gint argc, gchar *argv[])
             g_free(PortString);
             g_free(PayloadString);
             g_match_info_free(RegexMediaMatchInfo);
-            g_regex_unref(RegexMedia);
         }
 
         // SDP Attributes "a=""
         if(g_strcmp0(ParameterArray[0],"a") == 0)
         {
-            GError *RegexAttributeError = NULL;
-            GRegex *RegexAttribute =
-                g_regex_new
-                (
-                    REGEX_SDP_VALUE_ATTRIBUTE,
-                    G_REGEX_CASELESS,
-                    G_REGEX_MATCH_NOTEMPTY,
-                    &RegexAttributeError
-                );
-            processGError("Error with regex for a=", RegexAttributeError);
-
             // Split attribute line "a=key:value"
             GMatchInfo *RegexAttributeMatchInfo = NULL;
-            RegexCheck =
-                g_regex_match
-                (
-                    RegexAttribute,
-                    ParameterArray[1],
-                    G_REGEX_MATCH_NOTEMPTY,
-                    &RegexAttributeMatchInfo
-                );
+            checkRegex
+            (
+                REGEX_SDP_VALUE_ATTRIBUTE,
+                ParameterArray[1],
+                G_REGEX_CASELESS,
+                G_REGEX_MATCH_NOTEMPTY,
+                &RegexAttributeMatchInfo
+            );
 
             g_print
             (
@@ -204,8 +182,8 @@ gint main(gint argc, gchar *argv[])
 
             g_hash_table_insert(SDPAttributes, KeyString, ValueString);
 
+            // Don't g_free KeyString and ValueString because of the hash table
             g_match_info_free(RegexAttributeMatchInfo);
-            g_regex_unref(RegexAttribute);
         }
 
         g_strfreev(ParameterArray);

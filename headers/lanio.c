@@ -930,6 +930,124 @@ gboolean checkValidSDP(gchar *sdp)
 void callback_printHashTable(gpointer Key, gpointer Value, gpointer Data)
 {
     g_print("Key : %s\t Value : %s\n", (gchar*) Key, (gchar*) Value);
+
+    if(g_strcmp0((gchar*) Key, "mediaclk") == 0)
+    {
+        GMatchInfo *RegexMediaclkMatchInfo = NULL;
+
+        gboolean RegexCheck =
+            checkRegex
+            (
+                REGEX_SDP_ATTRIBUTE_MEDIACLK,
+                (gchar*) Value,
+                G_REGEX_CASELESS,
+                G_REGEX_MATCH_NOTEMPTY,
+                &RegexMediaclkMatchInfo
+            );
+
+        g_print("--%s--\n", RegexCheck ? "VALID" : "INVALID");
+
+        gchar *OffsetString =
+            g_match_info_fetch_named(RegexMediaclkMatchInfo, "offset");
+        g_print("\tOffset = %s\n", OffsetString);
+
+        g_free(OffsetString);
+    }
+
+    if(g_strcmp0((gchar*) Key, "recvonly") == 0)
+    {
+        g_print("--VALID--\n\tSender does not expect return\n");
+    }
+
+    if(g_strcmp0((gchar*) Key, "rtpmap") == 0)
+    {
+        GMatchInfo *RegexRtpmapMatchInfo = NULL;
+
+        gboolean RegexCheck =
+            checkRegex
+            (
+                REGEX_SDP_ATTRIBUTE_RTPMAP,
+                (gchar*) Value,
+                G_REGEX_CASELESS,
+                G_REGEX_MATCH_NOTEMPTY,
+                &RegexRtpmapMatchInfo
+            );
+
+        g_print("--%s--\n", RegexCheck ? "VALID" : "INVALID");
+
+        gchar *PayloadString =
+            g_match_info_fetch_named(RegexRtpmapMatchInfo, "payload");
+        gchar *BitrateString =
+            g_match_info_fetch_named(RegexRtpmapMatchInfo, "bitrate");
+        gchar *SamplerateString =
+            g_match_info_fetch_named(RegexRtpmapMatchInfo, "samplerate");
+        gchar *ChannelsString =
+            g_match_info_fetch_named(RegexRtpmapMatchInfo, "channels");
+
+        g_print("\tPayload = %s\n", PayloadString);
+        g_print("\tBitrate = %s\n", BitrateString);
+        g_print("\tSample Rate = %s\n", SamplerateString);
+        g_print("\tChannels = %s\n", ChannelsString);
+
+        g_free(PayloadString);
+        g_free(BitrateString);
+        g_free(SamplerateString);
+        g_free(ChannelsString);
+    }
+
+    if(g_strcmp0((gchar*) Key, "ts-refclk") == 0)
+    {
+        GMatchInfo *RegexTsrefclkMatchInfo = NULL;
+
+        gboolean RegexCheck =
+            checkRegex
+            (
+                REGEX_SDP_ATTRIBUTE_TSREFCLK,
+                (gchar*) Value,
+                G_REGEX_CASELESS,
+                G_REGEX_MATCH_NOTEMPTY,
+                &RegexTsrefclkMatchInfo
+            );
+
+        g_print("--%s--\n", RegexCheck ? "VALID" : "INVALID");
+
+        gchar *GMIDString =
+            g_match_info_fetch_named(RegexTsrefclkMatchInfo, "gmid");
+        gchar *DomainString =
+            g_match_info_fetch_named(RegexTsrefclkMatchInfo, "domain");
+
+        g_print("\tGrandMaster ID = %s\n", GMIDString);
+        g_print("\tPTP Domain = %s\n", DomainString);
+
+        g_free(GMIDString);
+        g_free(DomainString);
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+gboolean checkRegex(gchar *Pattern, gchar *String,
+                        GRegexCompileFlags CompileFlags,
+                            GRegexMatchFlags MatchFlags, GMatchInfo **MatchInfo)
+{
+    GError *RegexError = NULL;
+    GRegex *Regex =
+        g_regex_new
+        (
+            Pattern,
+            CompileFlags,
+            MatchFlags,
+            &RegexError
+        );
+    processGError("Error creating regex", RegexError);
+
+    gboolean ReturnValue = g_regex_match(Regex, String, MatchFlags, MatchInfo);
+
+    g_regex_unref(Regex);
+
+    return ReturnValue;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
