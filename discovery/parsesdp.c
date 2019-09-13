@@ -41,11 +41,15 @@ gint main(gint argc, gchar *argv[])
         checkValidSDP(SDPString) ? "VALID" : "INVALID"
     );
 
-
+    // Convert each line as a new string in an array
     gchar **StringArray = g_strsplit(SDPString, "\n", 0);
 
     gchar **ParameterArray = NULL;
     gboolean RegexCheck = FALSE;
+
+    // Hash table for the "a="" attributes
+    GHashTable *SDPAttributes =
+        g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 
     g_print("\t==== String array of string arrays :\n");
 
@@ -56,11 +60,13 @@ gint main(gint argc, gchar *argv[])
         i++
     )
     {
+        // Separate SDP keys and values
         ParameterArray = g_strsplit(StringArray[i], "=", 2);
 
         g_print("%s", ParameterArray[0]);
         g_print("\t%s\n", ParameterArray[1]);
 
+        // SDP Connection value "c="
         if(g_strcmp0(ParameterArray[0],"c") == 0)
         {
             GError *RegexConnectionError = NULL;
@@ -104,6 +110,7 @@ gint main(gint argc, gchar *argv[])
             g_regex_unref(RegexConnection);
         }
 
+        // SDP Timing value "t="
         if(g_strcmp0(ParameterArray[0],"t") == 0)
         {
             RegexCheck = g_strcmp0(ParameterArray[1],"0 0") == 0;
@@ -115,6 +122,7 @@ gint main(gint argc, gchar *argv[])
             );
         }
 
+        // SDP Media section "m="
         if(g_strcmp0(ParameterArray[0],"m") == 0)
         {
             GError *RegexMediaError = NULL;
@@ -158,6 +166,7 @@ gint main(gint argc, gchar *argv[])
             g_regex_unref(RegexMedia);
         }
 
+        // SDP Attributes "a=""
         if(g_strcmp0(ParameterArray[0],"a") == 0)
         {
             GError *RegexAttributeError = NULL;
@@ -171,8 +180,8 @@ gint main(gint argc, gchar *argv[])
                 );
             processGError("Error with regex for a=", RegexAttributeError);
 
+            // Split attribute line "a=key:value"
             GMatchInfo *RegexAttributeMatchInfo = NULL;
-
             RegexCheck =
                 g_regex_match
                 (
@@ -192,11 +201,9 @@ gint main(gint argc, gchar *argv[])
                 g_match_info_fetch_named(RegexAttributeMatchInfo, "key");
             gchar *ValueString =
                 g_match_info_fetch_named(RegexAttributeMatchInfo, "value");
-            g_print("\t\tKey = %s\n", KeyString);
-            g_print("\t\tValue = %s\n", ValueString);
 
-            g_free(KeyString);
-            g_free(ValueString);
+            g_hash_table_insert(SDPAttributes, KeyString, ValueString);
+
             g_match_info_free(RegexAttributeMatchInfo);
             g_regex_unref(RegexAttribute);
         }
@@ -204,6 +211,9 @@ gint main(gint argc, gchar *argv[])
         g_strfreev(ParameterArray);
     }
 
+    g_hash_table_foreach(SDPAttributes, callback_printHashTable, NULL);
+
+    g_hash_table_destroy(SDPAttributes);
     g_strfreev(StringArray);
 
     return EXIT_SUCCESS;
