@@ -84,6 +84,15 @@
 #define REGEX_SDP_VALUE_ATTRIBUTE \
     "^(?P<key>[[:alnum:]-]+)(?::(?P<value>[[:alnum:][:digit:][:punct:] ]+))?$"
 
+#define REGEX_SDP_ATTRIBUTE_MEDIACLK \
+    "^direct=(?P<offset>[[:digit:]]{1,20})$"
+
+#define REGEX_SDP_ATTRIBUTE_RTPMAP \
+    "^(?P<payload>[[:digit:]]{1,3}) (?P<encoding>L24|L16)\\/(?P<rate>44100|48000|88200|96000|176400|192000)\\/(?P<channels>[[:digit:]]{1,3})$"
+
+#define REGEX_SDP_ATTRIBUTE_TSREFCLK \
+    "^ptp=IEEE1588-2008:(?P<gmid>(?:(?:[[:xdigit:]]{2}-){7})(?:[[:xdigit:]]{2})):(?P<domain>[[:digit:]]{1,3})$"
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
