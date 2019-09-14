@@ -113,7 +113,6 @@ void processSQLiteOpenError(gint SQLiteOpenErrorCode)
         const gchar *SQLiteOpenErrorString = sqlite3_errstr(SQLiteOpenErrorCode);
         g_warning("SQLite open error : %s\n", SQLiteOpenErrorString);
 
-        g_free((gpointer) SQLiteOpenErrorString);
         exit(EXIT_FAILURE);
     }
 }
