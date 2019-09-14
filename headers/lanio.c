@@ -318,14 +318,14 @@ void printSAPPacket(SAPPacket *PacketToPrint)
         PacketToPrint->MessageType ==
             SAP_ANNOUNCEMENT_PACKET ? "Announcement" : "Deletion"
     );
-    g_debug("Encryption : \t\t\t%s",
+    g_debug("Encryption : \t\t\t\t%s",
                 PacketToPrint->Encryption ? "Encrypted" : "Not encrypted");
     g_debug("Compression : \t\t\t%s",
                 PacketToPrint->Compression ? "Compressed" : "Not compressed");
     g_debug("Authentication header length : \t%d",
                 PacketToPrint->AuthenticationLength);
-    g_debug("Identifier Hash : \t\t0x%04X", PacketToPrint->MessageIdentifierHash);
-    g_debug("Sender IP : \t\t\t%s", PacketToPrint->OriginatingSourceAddress);
+    g_debug("Identifier Hash : \t\t\t0x%04X", PacketToPrint->MessageIdentifierHash);
+    g_debug("Sender IP : \t\t\t\t%s", PacketToPrint->OriginatingSourceAddress);
     g_debug("Payload type : \t\t\t%s", PacketToPrint->PayloadType);
     g_debug("SDP description :\n%s", PacketToPrint->SDPDescription);
 }
