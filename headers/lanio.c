@@ -132,9 +132,22 @@ void createSAPTable(sqlite3 *SDPDatabase)
         "("
             "id INTEGER PRIMARY KEY AUTOINCREMENT, "
             "timestamp INTEGER DEFAULT " SQLITE_UNIX_CURRENT_TS ", "
-            "hash INTEGER UNIQUE, "
-            "source VARCHAR, "
-            "sdp VARCHAR "
+            "sap_hash INTEGER UNIQUE, "
+            "sap_sourceaddress VARCHAR, "
+            "sdp VARCHAR, "
+            "sdp_sourcetype VARCHAR, "
+            "sdp_sourcename VARCHAR, "
+            "sdp_sourceinfo VARCHAR, "
+            "sdp_streamaddress VARCHAR, "
+            "sdp_udpport INTEGER, "
+            "sdp_payloadtype INTEGER, "
+            "sdp_bitdepth INTEGER, "
+            "sdp_samplerate INTEGER, "
+            "sdp_channelcount INTEGER, "
+            "sdp_packettime INTEGER, "
+            "sdp_ptpdomain INTEGER, "
+            "sdp_ptpgmid VARCHAR, "
+            "sdp_ptpoffset INTEGER "
         ") ; "
         "CREATE TRIGGER IF NOT EXISTS AFTER UPDATE ON " SAP_TABLE_NAME " "
         "WHEN OLD.timestamp < " SQLITE_UNIX_CURRENT_TS " - (1 * " MINUTE ") "
@@ -334,27 +347,73 @@ void printSAPPacket(SAPPacket *PacketToPrint)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void insertSAPPacketInSAPTable(sqlite3 *SDPDatabase, SAPPacket* PacketToInsert)
+void insertSAPPacketInSAPTable(sqlite3 *SDPDatabase, SAPPacket *PacketToInsert)
 {
     gint SQLiteExecErrorCode = 0;
     gchar *SQLiteExecErrorString = NULL;
 
+    // printSAPPacket(PacketToInsert);
+
+    SDPParameters *SDPParametersToInsert = NULL;
+    SDPParametersToInsert =
+        convertSDPStringToStruct(PacketToInsert->SDPDescription);
+
+    if(!SDPParametersToInsert)
+    {
+        g_info
+        (
+            "Invalid SDP description. Ignoring SAP ID = 0x%04X",
+            PacketToInsert->MessageIdentifierHash
+        );
+        goto error;
+    }
+
+    // printSDPStruct(SDPParametersToInsert);
+
     gchar *SQLQuery =
         g_strdup_printf
         (
-            "INSERT INTO " SAP_TABLE_NAME " (timestamp, hash, source, sdp) "
+            "INSERT INTO " SAP_TABLE_NAME " "
+            // "(timestamp, sap_hash, sap_sourceaddress, sdp) "
             "VALUES "
             "( "
+                "NULL, "
                 SQLITE_UNIX_CURRENT_TS_ESCAPED ", "
-                "'%d', "
-                "'%s', "
-                "'%s' "
+                "'%u', " // Hash
+                "'%s', " // Source address
+                "'%s', " // SDP
+                "'%s', " // Source type
+                "'%s', " // Source name
+                "'%s', " // Source info
+                "'%s', " // Stream address
+                "'%u', " // UDP port
+                "'%u', " // Payload type
+                "'%u', " // Bit depth
+                "'%u', " // Sample rate
+                "'%u', " // Channel count
+                "'%u', " // Packet time
+                "'%u', " // PTP domain
+                "'%s', " // PTP GMID
+                "'%lu' " // Offset from GM
             ") "
-            "ON CONFLICT (hash) "
+            "ON CONFLICT (sap_hash) "
                 "DO UPDATE SET timestamp = " SQLITE_UNIX_CURRENT_TS_ESCAPED,
             PacketToInsert->MessageIdentifierHash,
             PacketToInsert->OriginatingSourceAddress,
-            PacketToInsert->SDPDescription
+            PacketToInsert->SDPDescription,
+            SDPParametersToInsert->SourceType,
+            SDPParametersToInsert->SourceName,
+            SDPParametersToInsert->SourceInfo,
+            SDPParametersToInsert->StreamAddress,
+            SDPParametersToInsert->UDPPort,
+            SDPParametersToInsert->PayloadType,
+            SDPParametersToInsert->BitDepth,
+            SDPParametersToInsert->SampleRate,
+            SDPParametersToInsert->ChannelCount,
+            SDPParametersToInsert->PacketTime,
+            SDPParametersToInsert->PTPGrandMasterClockDomain,
+            SDPParametersToInsert->PTPGrandMasterClockID,
+            SDPParametersToInsert->OffsetFromMasterClock
         );
 
     SQLiteExecErrorCode =
@@ -381,6 +440,8 @@ void insertSAPPacketInSAPTable(sqlite3 *SDPDatabase, SAPPacket* PacketToInsert)
         );
 
     g_free(SQLQuery);
+    error:
+        g_free(SDPParametersToInsert);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
