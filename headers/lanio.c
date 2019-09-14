@@ -1489,3 +1489,124 @@ void freeSDPStruct(SDPParameters *StructToFree)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+void printSDPEntries(sqlite3 *SDPDatabase, gchar *TableSQLName,
+                        gchar *TableDisplayName, gboolean PrintMode)
+{
+    gchar *SQLCountQuery =
+        g_strdup_printf
+        (
+            "SELECT COUNT(id) FROM %s ;",
+            TableSQLName
+        );
+
+    gint SQLiteExecErrorCode = 0;
+    gchar *SQLiteExecErrorString = NULL;
+    gint SQLCount = 0;
+
+    SQLiteExecErrorCode =
+        sqlite3_exec
+        (
+            SDPDatabase,
+            SQLCountQuery,
+            callback_returnSQLCount,
+            &SQLCount,
+            &SQLiteExecErrorString
+        );
+
+    processSQLiteExecError
+    (
+        SQLiteExecErrorCode,
+        SQLiteExecErrorString,
+        SQLCountQuery
+    );
+
+    g_free(SQLCountQuery);
+
+    if(SQLCount <= 0)
+    {
+        g_print("%s : No current streams.\n", TableDisplayName);
+        return;
+    }
+
+    gchar *SQLSelectQuery =
+        g_strdup_printf
+        (
+            "SELECT "
+                "sap_hash, sdp_sourcetype, sdp_sourcename, "
+                "sdp_streamaddress, sdp_channelcount, sdp_bitdepth, "
+                "sdp_samplerate, sdp_ptpgmid, sdp_ptpdomain "
+            "FROM %s ;",
+            TableSQLName
+        );
+
+    if(PrintMode == SDP_DATABASE_PRINT_MODE_CSV)
+    {
+        SQLiteExecErrorCode =
+            sqlite3_exec
+            (
+                SDPDatabase,
+                SQLSelectQuery,
+                callback_printSDPInCSV,
+                NULL,
+                &SQLiteExecErrorString
+            );
+    }
+    else if(PrintMode == SDP_DATABASE_PRINT_MODE_NICE)
+    {
+        SQLiteExecErrorCode =
+            sqlite3_exec
+            (
+                SDPDatabase,
+                SQLSelectQuery,
+                NULL, //callback_printSDPInFormattedTables,
+                NULL,
+                &SQLiteExecErrorString
+            );
+
+        g_print("Pretty List of Streamz\n");
+    }
+
+    processSQLiteExecError
+    (
+        SQLiteExecErrorCode,
+        SQLiteExecErrorString,
+        SQLSelectQuery
+    );
+
+    g_free(SQLSelectQuery);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+gint callback_returnSQLCount(gpointer ReturnCount, gint ColumnCount,
+                                gchar **DataRow, gchar **ColumnRow)
+{
+    gint *Temp = (gint*) ReturnCount;
+    *Temp = atoi(DataRow[0]);
+
+    return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+gint callback_printSDPInCSV(gpointer Useless, gint ColumnCount,
+                                gchar **DataRow, gchar **ColumnRow)
+{
+    gsize i;
+    for(i = 0 ; i < ColumnCount - 1 ; i++)
+    {
+        g_print("%s,", DataRow[i]);
+    }
+    g_print("%s\n", DataRow[i]);
+
+    return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////

@@ -51,14 +51,13 @@ gint main(gint argc, gchar *argv[])
     );
     g_free(SDPDatabasePath);
 
-    if(CommandLineParameters.CSV)
-    {
-        g_print("Ugly List of Streamz\n");
-    }
-    else // if(!CommandLineParameters.CSV)
-    {
-        g_print("Pretty List of Streamz\n");
-    }
+    printSDPEntries
+    (
+        SDPDatabase,
+        SAP_TABLE_NAME,
+        SAP_TABLE_DISPLAY_NAME,
+        CommandLineParameters.CSV
+    );
 
     sqlite3_close(SDPDatabase);
 

@@ -62,7 +62,15 @@
 #define WORKING_DIRECTORY_MASK              0744
 
 #define SDP_DATABASE_FILENAME               "SDP.db"
+#define SDP_DATABASE_PRINT_MODE_NICE        1
+#define SDP_DATABASE_PRINT_MODE_CSV         0
+
 #define SAP_TABLE_NAME                      "SAPDiscovery"
+#define SAP_TABLE_DISPLAY_NAME              "Dante streams"
+#define MDNS_TABLE_NAME                     "MDNSDiscovery"
+#define MDNS_TABLE_DISPLAY_NAME             "Ravenna streams"
+#define SDPFILES_TABLE_NAME                 "SDPFiles"
+#define SDPFILES_TABLE_DISPLAY_NAME         "User SDP files"
 
 #define MINUTE                              "60"
 #define SQLITE_UNIX_CURRENT_TS              "(CAST(strftime('%s','now') as INT))"
@@ -280,6 +288,15 @@ void callback_insertAttributeTableinSDPStruct(gpointer Key, gpointer Value,
 void printSDPStruct(SDPParameters *StructToPrint);
 
 void freeSDPStruct(SDPParameters *StructToFree);
+
+void printSDPEntries(sqlite3 *SDPDatabase, gchar *TableSQLName,
+                        gchar *TableDisplayName, gboolean PrintMode);
+
+gint callback_returnSQLCount(gpointer ReturnCount, gint ColumnCount,
+                                gchar **DataRow, gchar **ColumnRow);
+
+gint callback_printSDPInCSV(gpointer Useless, gint ColumnCount,
+                                gchar **DataRow, gchar **ColumnRow);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
