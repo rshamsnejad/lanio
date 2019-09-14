@@ -1123,7 +1123,7 @@ SDPParameters* convertSDPStringToStruct(gchar *SDPStringToProcess)
     SDPParameters *ReturnStruct = g_malloc0(sizeof(SDPParameters));
 
     // Convert each line as a new string in an array
-    gchar **StringArray = g_strsplit(SDPStringToProcess, "\n", 0);
+    gchar **StringArray = g_strsplit(SDPStringToProcess, "\r\n", 0);
 
     gchar **ParameterArray = NULL;
     gboolean RegexCheck = FALSE;
