@@ -35,164 +35,16 @@ gint main(gint argc, gchar *argv[])
 
     g_print("\t==== SDP :\n%s", SDPString);
 
-    g_print
-    (
-        "\n---------------%s---------------\n\n",
-        checkValidSDP(SDPString) ? "VALID" : "INVALID"
-    );
+    SDPParameters *Params = convertSDPStringToStruct(SDPString);
 
-    // Convert each line as a new string in an array
-    gchar **StringArray = g_strsplit(SDPString, "\n", 0);
-
-    gchar **ParameterArray = NULL;
-    gboolean RegexCheck = FALSE;
-
-    // Hash table for the "a="" attributes
-    GHashTable *SDPAttributes =
-        g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
-
-    g_print("\t==== String array of string arrays :\n");
-
-    for
-    (
-        gsize i = 0;
-        StringArray[i] != NULL && StringArray[i][0] != '\0';
-        i++
-    )
+    if(!Params)
     {
-        // Separate SDP keys and values
-        ParameterArray = g_strsplit(StringArray[i], "=", 2);
-
-        g_print("%s", ParameterArray[0]);
-        g_print("\t%s\n", ParameterArray[1]);
-
-        // SDP Connection value "c="
-        if(g_strcmp0(ParameterArray[0],"c") == 0)
-        {
-            GError *RegexConnectionError = NULL;
-            GRegex *RegexConnection =
-                g_regex_new
-                (
-                    REGEX_SDP_VALUE_CONNECTION,
-                    G_REGEX_CASELESS,
-                    G_REGEX_MATCH_NOTEMPTY,
-                    &RegexConnectionError
-                );
-            processGError("Error with regex for c=", RegexConnectionError);
-
-            GMatchInfo *RegexConnectionMatchInfo = NULL;
-
-            RegexCheck =
-                g_regex_match
-                (
-                    RegexConnection,
-                    ParameterArray[1],
-                    G_REGEX_MATCH_NOTEMPTY,
-                    &RegexConnectionMatchInfo
-                );
-
-            g_print
-            (
-                "--------%s--------\n",
-                RegexCheck ? "VALID" : "INVALID"
-            );
-
-            gchar *AddressString =
-                g_match_info_fetch_named(RegexConnectionMatchInfo, "address");
-            gchar *TTLString =
-                g_match_info_fetch_named(RegexConnectionMatchInfo, "ttl");
-            g_print("\t\tAddress = %s\n", AddressString);
-            g_print("\t\tTTL = %s\n", TTLString);
-
-            g_free(AddressString);
-            g_free(TTLString);
-            g_match_info_free(RegexConnectionMatchInfo);
-            g_regex_unref(RegexConnection);
-        }
-
-        // SDP Timing value "t="
-        if(g_strcmp0(ParameterArray[0],"t") == 0)
-        {
-            RegexCheck = g_strcmp0(ParameterArray[1],"0 0") == 0;
-
-            g_print
-            (
-                "--------%s--------\n",
-                RegexCheck ? "VALID ; Permanent." : "INVALID"
-            );
-        }
-
-        // SDP Media section "m="
-        if(g_strcmp0(ParameterArray[0],"m") == 0)
-        {
-            GMatchInfo *RegexMediaMatchInfo = NULL;
-
-            RegexCheck =
-                checkRegex
-                (
-                    REGEX_SDP_VALUE_MEDIA,
-                    ParameterArray[1],
-                    G_REGEX_CASELESS,
-                    G_REGEX_MATCH_NOTEMPTY,
-                    &RegexMediaMatchInfo
-                );
-
-            g_print
-            (
-                "--------%s--------\n",
-                RegexCheck ? "VALID" : "INVALID"
-            );
-
-            gchar *PortString =
-                g_match_info_fetch_named(RegexMediaMatchInfo, "port");
-            gchar *PayloadString =
-                g_match_info_fetch_named(RegexMediaMatchInfo, "payload");
-            g_print("\t\tPort = %s\n", PortString);
-            g_print("\t\tPayload = %s\n", PayloadString);
-
-            g_free(PortString);
-            g_free(PayloadString);
-            g_match_info_free(RegexMediaMatchInfo);
-        }
-
-        // SDP Attributes "a=""
-        if(g_strcmp0(ParameterArray[0],"a") == 0)
-        {
-            // Split attribute line "a=key:value"
-            GMatchInfo *RegexAttributeMatchInfo = NULL;
-            checkRegex
-            (
-                REGEX_SDP_VALUE_ATTRIBUTE,
-                ParameterArray[1],
-                G_REGEX_CASELESS,
-                G_REGEX_MATCH_NOTEMPTY,
-                &RegexAttributeMatchInfo
-            );
-
-            g_print
-            (
-                "--------%s--------\n",
-                RegexCheck ? "VALID" : "INVALID"
-            );
-
-            gchar *KeyString =
-                g_match_info_fetch_named(RegexAttributeMatchInfo, "key");
-            gchar *ValueString =
-                g_match_info_fetch_named(RegexAttributeMatchInfo, "value");
-
-            g_hash_table_insert(SDPAttributes, KeyString, ValueString);
-
-            // Don't g_free KeyString and ValueString because of the hash table
-            g_match_info_free(RegexAttributeMatchInfo);
-        }
-
-        g_strfreev(ParameterArray);
+        g_message("Convert Error");
     }
 
-    g_hash_table_foreach(SDPAttributes, callback_printHashTable, NULL);
+    printSDPStruct(Params);
 
-    g_hash_table_destroy(SDPAttributes);
-    g_strfreev(StringArray);
+    freeSDPStruct(Params);
 
     return EXIT_SUCCESS;
 }

@@ -88,7 +88,7 @@
     "^direct=(?P<offset>[[:digit:]]{1,20})$"
 
 #define REGEX_SDP_ATTRIBUTE_RTPMAP \
-    "^(?P<payload>[[:digit:]]{1,3}) L(?P<bitrate>24|16)\\/(?P<samplerate>44100|48000|88200|96000|176400|192000)\\/(?P<channels>[[:digit:]]{1,3})$"
+    "^(?P<payload>[[:digit:]]{1,3}) L(?P<bitdepth>24|16)\\/(?P<samplerate>44100|48000|88200|96000|176400|192000)\\/(?P<channels>[[:digit:]]{1,3})$"
 
 #define REGEX_SDP_ATTRIBUTE_TSREFCLK \
     "^ptp=IEEE1588-2008:(?P<gmid>(?:(?:[[:xdigit:]]{2}-){7})(?:[[:xdigit:]]{2})):(?P<domain>[[:digit:]]{1,3})$"
@@ -173,9 +173,9 @@ typedef struct _SDPParameters
     guint8      BitDepth;
     guint32     SampleRate;
     guint8      ChannelCount;
-    guint8      PacketTime;
-    gchar      *ReferenceClockType;
-    gchar      *MasterClockID;
+    guint16     PacketTime;
+    guint8      PTPGrandMasterClockDomain;
+    gchar      *PTPGrandMasterClockID;
     guint64     OffsetFromMasterClock;
 }
     SDPParameters;
@@ -264,13 +264,22 @@ void checkCLIParameters(gboolean Expression, GOptionContext *Context);
 
 void parseCLIContext(GOptionContext *Context, gint argc, gchar *argv[]);
 
-gboolean checkValidSDP(gchar *sdp);
+gboolean checkValidSDPString(gchar *sdp);
 
 void callback_printHashTable(gpointer Key, gpointer Value, gpointer Data);
 
 gboolean checkRegex(gchar *Pattern, gchar *String,
                         GRegexCompileFlags CompileFlags,
                             GRegexMatchFlags MatchFlags, GMatchInfo **MatchInfo);
+
+SDPParameters* convertSDPStringToStruct(gchar *SDPStringToProcess);
+
+void callback_insertAttributeTableinSDPStruct(gpointer Key, gpointer Value,
+                                                gpointer SDPStruct);
+
+void printSDPStruct(SDPParameters *StructToPrint);
+
+void freeSDPStruct(SDPParameters *StructToFree);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

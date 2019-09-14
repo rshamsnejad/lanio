@@ -911,7 +911,7 @@ void parseCLIContext(GOptionContext *Context, gint argc, gchar *argv[])
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-gboolean checkValidSDP(gchar *sdp)
+gboolean checkValidSDPString(gchar *sdp)
 {
     return
         g_regex_match_simple
@@ -1048,6 +1048,382 @@ gboolean checkRegex(gchar *Pattern, gchar *String,
     g_regex_unref(Regex);
 
     return ReturnValue;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+SDPParameters* convertSDPStringToStruct(gchar *SDPStringToProcess)
+{
+    if(!checkValidSDPString(SDPStringToProcess))
+        return NULL;
+
+    SDPParameters *ReturnStruct = g_malloc0(sizeof(SDPParameters));
+
+    // Convert each line as a new string in an array
+    gchar **StringArray = g_strsplit(SDPStringToProcess, "\n", 0);
+
+    gchar **ParameterArray = NULL;
+    gboolean RegexCheck = FALSE;
+
+    // Hash table for storing the "a="" attributes
+    GHashTable *SDPAttributes =
+        g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+
+    for // Iterate on each splitted non-empty string
+    (
+        gsize i = 0;
+        StringArray[i] != NULL && StringArray[i][0] != '\0';
+        i++
+    )
+    {
+        // Separate SDP keys and values
+        ParameterArray = g_strsplit(StringArray[i], "=", 2);
+
+        // SDP Connection value "c="
+        if(g_strcmp0(ParameterArray[0],"c") == 0)
+        {
+            GMatchInfo *RegexConnectionMatchInfo = NULL;
+
+            RegexCheck =
+                checkRegex
+                (
+                    REGEX_SDP_VALUE_CONNECTION,
+                    ParameterArray[1],
+                    G_REGEX_CASELESS,
+                    G_REGEX_MATCH_NOTEMPTY,
+                    &RegexConnectionMatchInfo
+                );
+
+            if(!RegexCheck)
+            {
+                g_info("Invalid SDP : Wrong connection section.");
+                g_debug("\t%s", StringArray[i]);
+
+                g_match_info_free(RegexConnectionMatchInfo);
+                goto checkerror;
+            }
+
+            gchar *AddressString =
+                g_match_info_fetch_named(RegexConnectionMatchInfo, "address");
+            gchar *TTLString =
+                g_match_info_fetch_named(RegexConnectionMatchInfo, "ttl");
+
+            ReturnStruct->StreamAddress = g_strdup(AddressString);
+
+            g_free(AddressString);
+            g_free(TTLString);
+            g_match_info_free(RegexConnectionMatchInfo);
+        }
+
+        // SDP Timing value "t="
+        if(g_strcmp0(ParameterArray[0],"t") == 0)
+        {
+            RegexCheck = g_strcmp0(ParameterArray[1],"0 0") == 0;
+
+            if(!RegexCheck)
+            {
+                g_info("Invalid SDP : Session is not permanent.");
+                g_debug("\t%s", StringArray[i]);
+
+                goto checkerror;
+            }
+        }
+
+        // SDP Media section "m="
+        if(g_strcmp0(ParameterArray[0],"m") == 0)
+        {
+            GMatchInfo *RegexMediaMatchInfo = NULL;
+
+            RegexCheck =
+                checkRegex
+                (
+                    REGEX_SDP_VALUE_MEDIA,
+                    ParameterArray[1],
+                    G_REGEX_CASELESS,
+                    G_REGEX_MATCH_NOTEMPTY,
+                    &RegexMediaMatchInfo
+                );
+
+            if(!RegexCheck)
+            {
+                g_info("Invalid SDP : Wrong media section.");
+                g_debug("\t%s", StringArray[i]);
+
+                g_match_info_free(RegexMediaMatchInfo);
+                goto checkerror;
+            }
+
+            gchar *PortString =
+                g_match_info_fetch_named(RegexMediaMatchInfo, "port");
+            gchar *PayloadString =
+                g_match_info_fetch_named(RegexMediaMatchInfo, "payload");
+
+            ReturnStruct->UDPPort = atoi(PortString);
+
+            g_free(PortString);
+            g_free(PayloadString);
+            g_match_info_free(RegexMediaMatchInfo);
+        }
+
+        // SDP Attributes "a=""
+        if(g_strcmp0(ParameterArray[0],"a") == 0)
+        {
+            // Split attribute line "a=key:value"
+            GMatchInfo *RegexAttributeMatchInfo = NULL;
+            checkRegex
+            (
+                REGEX_SDP_VALUE_ATTRIBUTE,
+                ParameterArray[1],
+                G_REGEX_CASELESS,
+                G_REGEX_MATCH_NOTEMPTY,
+                &RegexAttributeMatchInfo
+            );
+
+            if(!RegexCheck)
+            {
+                g_info("Invalid SDP : Wrong attribute section.");
+                g_debug("\t%s", StringArray[i]);
+
+                g_match_info_free(RegexAttributeMatchInfo);
+                goto checkerror;
+            }
+
+            gchar *KeyString =
+                g_match_info_fetch_named(RegexAttributeMatchInfo, "key");
+            gchar *ValueString =
+                g_match_info_fetch_named(RegexAttributeMatchInfo, "value");
+
+            g_hash_table_insert(SDPAttributes, KeyString, ValueString);
+
+            // Don't g_free KeyString and ValueString because of the hash table
+            g_match_info_free(RegexAttributeMatchInfo);
+        }
+
+        if(g_strcmp0(ParameterArray[0],"s") == 0)
+            ReturnStruct->SourceName = g_strdup(ParameterArray[1]);
+
+        if(g_strcmp0(ParameterArray[0],"i") == 0)
+            ReturnStruct->SourceInfo = g_strdup(ParameterArray[1]);
+
+        if(g_strcmp0(ParameterArray[0],"v") == 0)
+        {
+            if(!(g_strcmp0(ParameterArray[1],"0") == 0))
+            {
+                g_info("Invalid SDP : Wrong SDP version.");
+                g_debug("\t%s", StringArray[i]);
+
+                goto checkerror;
+            }
+        }
+
+        g_strfreev(ParameterArray);
+    }
+
+    if
+    (
+        !g_hash_table_contains(SDPAttributes, "recvonly") ||
+        g_hash_table_contains(SDPAttributes, "sendrecv") ||
+        g_hash_table_contains(SDPAttributes, "sendonly"))
+    {
+        g_info("Invalid SDP : Wrong send/receive attribute.");
+
+        goto check_sendrecv_error;
+    }
+
+    g_hash_table_foreach
+    (
+        SDPAttributes,
+        callback_insertAttributeTableinSDPStruct,
+        ReturnStruct
+    );
+
+    g_hash_table_destroy(SDPAttributes);
+    g_strfreev(StringArray);
+
+    return ReturnStruct;
+
+    checkerror:
+        g_strfreev(ParameterArray);
+    check_sendrecv_error:
+        g_hash_table_destroy(SDPAttributes);
+        g_strfreev(StringArray);
+        g_free(ReturnStruct);
+
+        return NULL;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void callback_insertAttributeTableinSDPStruct(gpointer Key, gpointer Value,
+                                                gpointer SDPStruct)
+{
+    if(g_strcmp0((gchar*) Key, "mediaclk") == 0)
+    {
+        GMatchInfo *RegexMediaclkMatchInfo = NULL;
+
+        gboolean RegexCheck =
+            checkRegex
+            (
+                REGEX_SDP_ATTRIBUTE_MEDIACLK,
+                (gchar*) Value,
+                G_REGEX_CASELESS,
+                G_REGEX_MATCH_NOTEMPTY,
+                &RegexMediaclkMatchInfo
+            );
+
+        if(!RegexCheck)
+        {
+            g_info("Invalid SDP : Wrong mediaclk attribute.");
+            g_debug("\t%s=%s", (gchar*) Key, (gchar*) Value);
+
+            g_match_info_free(RegexMediaclkMatchInfo);
+            return;
+        }
+
+        gchar *OffsetString =
+            g_match_info_fetch_named(RegexMediaclkMatchInfo, "offset");
+
+        ((SDPParameters*) SDPStruct)->OffsetFromMasterClock =
+            g_ascii_strtoull(OffsetString, NULL, 10);
+
+        g_free(OffsetString);
+        g_match_info_free(RegexMediaclkMatchInfo);
+    }
+
+    if(g_strcmp0((gchar*) Key, "rtpmap") == 0)
+    {
+        GMatchInfo *RegexRtpmapMatchInfo = NULL;
+
+        gboolean RegexCheck =
+            checkRegex
+            (
+                REGEX_SDP_ATTRIBUTE_RTPMAP,
+                (gchar*) Value,
+                G_REGEX_CASELESS,
+                G_REGEX_MATCH_NOTEMPTY,
+                &RegexRtpmapMatchInfo
+            );
+
+        if(!RegexCheck)
+        {
+            g_info("Invalid SDP : Wrong rtpmap attribute.");
+            g_debug("\t%s=%s", (gchar*) Key, (gchar*) Value);
+
+            g_match_info_free(RegexRtpmapMatchInfo);
+            return;
+        }
+
+        gchar *PayloadString =
+            g_match_info_fetch_named(RegexRtpmapMatchInfo, "payload");
+        gchar *BitdepthString =
+            g_match_info_fetch_named(RegexRtpmapMatchInfo, "bitdepth");
+        gchar *SamplerateString =
+            g_match_info_fetch_named(RegexRtpmapMatchInfo, "samplerate");
+        gchar *ChannelsString =
+            g_match_info_fetch_named(RegexRtpmapMatchInfo, "channels");
+
+        ((SDPParameters*) SDPStruct)->PayloadType = atoi(PayloadString);
+        ((SDPParameters*) SDPStruct)->BitDepth = atoi(BitdepthString);
+        ((SDPParameters*) SDPStruct)->SampleRate =
+            g_ascii_strtoull(SamplerateString, NULL, 10);
+        ((SDPParameters*) SDPStruct)->ChannelCount = atoi(ChannelsString);
+
+        g_free(PayloadString);
+        g_free(BitdepthString);
+        g_free(SamplerateString);
+        g_free(ChannelsString);
+        g_match_info_free(RegexRtpmapMatchInfo);
+    }
+
+    if(g_strcmp0((gchar*) Key, "ts-refclk") == 0)
+    {
+        GMatchInfo *RegexTsrefclkMatchInfo = NULL;
+
+        gboolean RegexCheck =
+            checkRegex
+            (
+                REGEX_SDP_ATTRIBUTE_TSREFCLK,
+                (gchar*) Value,
+                G_REGEX_CASELESS,
+                G_REGEX_MATCH_NOTEMPTY,
+                &RegexTsrefclkMatchInfo
+            );
+
+        if(!RegexCheck)
+        {
+            g_info("Invalid SDP : Wrong ts-refclk attribute.");
+            g_debug("\t%s=%s", (gchar*) Key, (gchar*) Value);
+
+            g_match_info_free(RegexTsrefclkMatchInfo);
+            return;
+        }
+
+        gchar *GMIDString =
+            g_match_info_fetch_named(RegexTsrefclkMatchInfo, "gmid");
+        gchar *DomainString =
+            g_match_info_fetch_named(RegexTsrefclkMatchInfo, "domain");
+
+        ((SDPParameters*) SDPStruct)->PTPGrandMasterClockID =
+            g_strdup(GMIDString);
+        ((SDPParameters*) SDPStruct)->PTPGrandMasterClockDomain =
+            atoi(DomainString);
+
+        g_free(GMIDString);
+        g_free(DomainString);
+        g_match_info_free(RegexTsrefclkMatchInfo);
+    }
+
+    if(g_strcmp0((gchar*) Key, "ptime") == 0)
+    {
+        ((SDPParameters*) SDPStruct)->PacketTime = atoi((gchar*) Value);
+    }
+
+    if(g_strcmp0((gchar*) Key, "keywds") == 0)
+    {
+        ((SDPParameters*) SDPStruct)->SourceType = g_strdup((gchar*) Value);
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void printSDPStruct(SDPParameters *StructToPrint)
+{
+    g_debug("=== BEGIN SDP STRUCT ===");
+    g_debug("Source Type :\t\t\t%s", StructToPrint->SourceType);
+    g_debug("Source Name :\t\t\t%s", StructToPrint->SourceName);
+    g_debug("Source Info :\t\t\t%s", StructToPrint->SourceInfo);;
+    g_debug("Stream Address :\t\t%s", StructToPrint->StreamAddress);
+    g_debug("UDP Port :\t\t\t%u", StructToPrint->UDPPort);
+    g_debug("Payload Type :\t\t%u", StructToPrint->PayloadType);
+    g_debug("Bit Depth :\t\t\t%u", StructToPrint->BitDepth);
+    g_debug("Sample Rate :\t\t\t%u", StructToPrint->SampleRate);
+    g_debug("Channel Count :\t\t%u", StructToPrint->ChannelCount);
+    g_debug("Packet Time :\t\t\t%u", StructToPrint->PacketTime);
+    g_debug("PTP GM Clock Domain :\t\t%u",
+        StructToPrint->PTPGrandMasterClockDomain);
+    g_debug("PTP GM Clock ID :\t\t%s", StructToPrint->PTPGrandMasterClockID);
+    g_debug("Offset from GM Clock :\t%u", StructToPrint->OffsetFromMasterClock);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void freeSDPStruct(SDPParameters *StructToFree)
+{
+    g_free(StructToFree->SourceType);
+    g_free(StructToFree->SourceName);
+    g_free(StructToFree->SourceInfo);
+    g_free(StructToFree->StreamAddress);
+    g_free(StructToFree->PTPGrandMasterClockID);
+
+    g_free(StructToFree);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
