@@ -62,8 +62,8 @@
 #define WORKING_DIRECTORY_MASK              0744
 
 #define SDP_DATABASE_FILENAME               "SDP.db"
-#define SDP_DATABASE_PRINT_MODE_NICE        1
-#define SDP_DATABASE_PRINT_MODE_CSV         0
+#define SDP_DATABASE_PRINT_MODE_NICE        0
+#define SDP_DATABASE_PRINT_MODE_CSV         1
 
 #define SAP_TABLE_NAME                      "SAPDiscovery"
 #define SAP_TABLE_DISPLAY_NAME              "Dante streams"
