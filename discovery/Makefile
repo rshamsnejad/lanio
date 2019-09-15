@@ -1,22 +1,23 @@
 IDIR =../headers
 CC=gcc
-CFLAGS=-I$(IDIR) `pkg-config --cflags glib-2.0 gio-2.0 sqlite3` -Wall -Werror -g
 
 ODIR=.
 LDIR =../lib
+
+CFLAGS=-I$(IDIR) -I$(LDIR) `pkg-config --cflags glib-2.0 gio-2.0 sqlite3` -Wall -Werror -g
 
 LIBS=`pkg-config --libs glib-2.0 gio-2.0 sqlite3`
 
 _DEPS = lanio.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ_discovery = lanio-discovery.o $(IDIR)/lanio.o
+_OBJ_discovery = lanio-discovery.o $(IDIR)/lanio.o $(LDIR)/fort.o
 OBJ_discovery = $(patsubst %,$(ODIR)/%,$(_OBJ_discovery))
 
-_OBJ_list-discovered = lanio-list-discovered.o $(IDIR)/lanio.o
+_OBJ_list-discovered = lanio-list-discovered.o $(IDIR)/lanio.o $(LDIR)/fort.o
 OBJ_list-discovered = $(patsubst %,$(ODIR)/%,$(_OBJ_list-discovered))
 
-_OBJ_parsesdp = parsesdp.o $(IDIR)/lanio.o
+_OBJ_parsesdp = parsesdp.o $(IDIR)/lanio.o $(LDIR)/fort.o
 OBJ_parsesdp = $(patsubst %,$(ODIR)/%,$(_OBJ_parsesdp))
 
 
@@ -35,4 +36,4 @@ parsesdp: $(OBJ_parsesdp)
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ $(IDIR)/*.o
+	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ $(IDIR)/*.o $(LDIR)/*.o
