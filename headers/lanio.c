@@ -456,7 +456,7 @@ void removeSAPPacketFromSAPTable(sqlite3 *SDPDatabase,
     gchar *SQLQuery =
         g_strdup_printf
         (
-            "DELETE FROM " SAP_TABLE_NAME " WHERE hash = %d",
+            "DELETE FROM " SAP_TABLE_NAME " WHERE sap_hash = %d",
             PacketToRemove->MessageIdentifierHash
         );
 
