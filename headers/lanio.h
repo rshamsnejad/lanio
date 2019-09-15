@@ -67,10 +67,13 @@
 
 #define SAP_TABLE_NAME                      "SAPDiscovery"
 #define SAP_TABLE_DISPLAY_NAME              "Dante streams"
+#define SAP_TABLE_CLI_PARAMETER             "dante"
 #define MDNS_TABLE_NAME                     "MDNSDiscovery"
 #define MDNS_TABLE_DISPLAY_NAME             "Ravenna streams"
+#define MDNS_TABLE_CLI_PARAMETER            "ravenna"
 #define SDPFILES_TABLE_NAME                 "SDPFiles"
 #define SDPFILES_TABLE_DISPLAY_NAME         "User SDP files"
+#define SDPFILES_TABLE_CLI_PARAMETER        "files"
 
 #define MINUTE                              "60"
 #define SQLITE_UNIX_CURRENT_TS              "(CAST(strftime('%s','now') as INT))"
@@ -289,14 +292,17 @@ void printSDPStruct(SDPParameters *StructToPrint);
 
 void freeSDPStruct(SDPParameters *StructToFree);
 
-void printSDPEntries(sqlite3 *SDPDatabase, gchar *TableSQLName,
-                        gchar *TableDisplayName, gboolean PrintMode);
+void printSAPEntries(sqlite3 *SDPDatabase, gboolean PrintMode);
 
 gint callback_returnSQLCount(gpointer ReturnCount, gint ColumnCount,
                                 gchar **DataRow, gchar **ColumnRow);
 
 gint callback_printSDPInCSV(gpointer Useless, gint ColumnCount,
                                 gchar **DataRow, gchar **ColumnRow);
+
+void printMDNSEntries(void);
+
+void printSDPFilesEntries(void);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

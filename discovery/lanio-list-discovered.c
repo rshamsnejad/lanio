@@ -51,13 +51,61 @@ gint main(gint argc, gchar *argv[])
     );
     g_free(SDPDatabasePath);
 
-    printSDPEntries
-    (
-        SDPDatabase,
-        SAP_TABLE_NAME,
-        SAP_TABLE_DISPLAY_NAME,
-        CommandLineParameters.CSV
-    );
+    if(CommandLineParameters.StreamCategory)
+    {
+        if
+        (
+            g_strcmp0
+            (
+                CommandLineParameters.StreamCategory,
+                SAP_TABLE_CLI_PARAMETER
+            ) == 0
+        )
+        {
+            printSAPEntries
+            (
+                SDPDatabase,
+                CommandLineParameters.CSV
+            );
+        }
+        else if
+        (
+            g_strcmp0
+            (
+                CommandLineParameters.StreamCategory,
+                MDNS_TABLE_CLI_PARAMETER
+            ) == 0
+        )
+        {
+            printMDNSEntries();
+        }
+        else if
+        (
+            g_strcmp0
+            (
+                CommandLineParameters.StreamCategory,
+                SDPFILES_TABLE_CLI_PARAMETER
+            ) == 0
+        )
+        {
+            printSDPFilesEntries();
+        }
+        else
+        {
+            g_warning("Unknown stream category");
+            exit(EXIT_FAILURE);
+        }
+    }
+    else
+    {
+        printSAPEntries
+        (
+            SDPDatabase,
+            CommandLineParameters.CSV
+        );
+        printMDNSEntries();
+        printSDPFilesEntries();
+    }
 
     sqlite3_close(SDPDatabase);
 

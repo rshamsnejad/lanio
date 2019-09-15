@@ -1490,14 +1490,12 @@ void freeSDPStruct(SDPParameters *StructToFree)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void printSDPEntries(sqlite3 *SDPDatabase, gchar *TableSQLName,
-                        gchar *TableDisplayName, gboolean PrintMode)
+void printSAPEntries(sqlite3 *SDPDatabase, gboolean PrintMode)
 {
     gchar *SQLCountQuery =
         g_strdup_printf
         (
-            "SELECT COUNT(id) FROM %s ;",
-            TableSQLName
+            "SELECT COUNT(id) FROM " SAP_TABLE_NAME " ;"
         );
 
     gint SQLiteExecErrorCode = 0;
@@ -1525,7 +1523,7 @@ void printSDPEntries(sqlite3 *SDPDatabase, gchar *TableSQLName,
 
     if(SQLCount <= 0)
     {
-        g_print("%s : No current streams.\n", TableDisplayName);
+        g_printerr(SAP_TABLE_DISPLAY_NAME " : No current streams.\n");
         return;
     }
 
@@ -1536,8 +1534,7 @@ void printSDPEntries(sqlite3 *SDPDatabase, gchar *TableSQLName,
                 "sap_hash, sdp_sourcetype, sdp_sourcename, "
                 "sdp_streamaddress, sdp_channelcount, sdp_bitdepth, "
                 "sdp_samplerate, sdp_ptpgmid, sdp_ptpdomain "
-            "FROM %s ;",
-            TableSQLName
+            "FROM " SAP_TABLE_NAME " ;"
         );
 
     if(PrintMode == SDP_DATABASE_PRINT_MODE_CSV)
@@ -1605,6 +1602,24 @@ gint callback_printSDPInCSV(gpointer Useless, gint ColumnCount,
     g_print("%s\n", DataRow[i]);
 
     return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void printMDNSEntries(void)
+{
+    g_printerr(MDNS_TABLE_DISPLAY_NAME " : No current streams.\n");
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void printSDPFilesEntries(void)
+{
+    g_printerr(SDPFILES_TABLE_DISPLAY_NAME " : No current streams.\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
