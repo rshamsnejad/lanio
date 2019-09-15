@@ -1534,7 +1534,8 @@ void printSAPEntries(sqlite3 *SDPDatabase, gboolean PrintMode)
                 "sap_hash, sdp_sourcetype, sdp_sourcename, "
                 "sdp_streamaddress, sdp_channelcount, sdp_bitdepth, "
                 "sdp_samplerate, sdp_ptpgmid, sdp_ptpdomain "
-            "FROM " SAP_TABLE_NAME " ;"
+            "FROM " SAP_TABLE_NAME " "
+            "ORDER BY sdp_sourcename ASC ;"
         );
 
     if(PrintMode == SDP_DATABASE_PRINT_MODE_CSV)
@@ -1551,17 +1552,45 @@ void printSAPEntries(sqlite3 *SDPDatabase, gboolean PrintMode)
     }
     else if(PrintMode == SDP_DATABASE_PRINT_MODE_NICE)
     {
+        ft_table_t *ASCIITable = ft_create_table();
+
+        ft_set_border_style(ASCIITable, FT_DOUBLE2_STYLE);
+        ft_set_cell_prop
+        (
+            ASCIITable,
+            0,
+            FT_ANY_COLUMN,
+            FT_CPROP_ROW_TYPE,
+            FT_ROW_HEADER
+        );
+
+        ft_write_ln
+        (
+            ASCIITable,
+            "Hash",
+            "Stream type",
+            "Source name",
+            "Stream address",
+            "Channels",
+            "Bit depth",
+            "Sample rate",
+            "PTP GMID",
+            "PTP domain"
+        );
+
         SQLiteExecErrorCode =
             sqlite3_exec
             (
                 SDPDatabase,
                 SQLSelectQuery,
-                NULL, //callback_printSDPInFormattedTables,
-                NULL,
+                callback_insertSDPEntriesInFormattedTable,
+                ASCIITable,
                 &SQLiteExecErrorString
             );
 
-        g_print("Pretty List of Streamz\n");
+        printf("\n%s\n", ft_to_string(ASCIITable));
+
+        ft_destroy_table(ASCIITable);
     }
 
     processSQLiteExecError
@@ -1620,6 +1649,26 @@ void printMDNSEntries(void)
 void printSDPFilesEntries(void)
 {
     g_printerr(SDPFILES_TABLE_DISPLAY_NAME " : No current streams.\n");
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+gint callback_insertSDPEntriesInFormattedTable
+(
+    gpointer ASCIITable,
+    gint ColumnCount,
+    gchar **DataRow,
+    gchar **ColumnRow
+)
+{
+    ft_table_t *Table = (ft_table_t*) ASCIITable;
+    const gchar **Row = (const gchar**) DataRow;
+
+    ft_row_write_ln(Table, ColumnCount, Row);
+
+    return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
