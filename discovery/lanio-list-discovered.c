@@ -77,7 +77,7 @@ gint main(gint argc, gchar *argv[])
             ) == 0
         )
         {
-            printMDNSEntries();
+            printMDNSEntries(CommandLineParameters.CSV);
         }
         else if
         (
@@ -88,7 +88,7 @@ gint main(gint argc, gchar *argv[])
             ) == 0
         )
         {
-            printSDPFilesEntries();
+            printSDPFilesEntries(CommandLineParameters.CSV);
         }
         else
         {
@@ -103,8 +103,8 @@ gint main(gint argc, gchar *argv[])
             SDPDatabase,
             CommandLineParameters.CSV
         );
-        printMDNSEntries();
-        printSDPFilesEntries();
+        printMDNSEntries(CommandLineParameters.CSV);
+        printSDPFilesEntries(CommandLineParameters.CSV);
     }
 
     sqlite3_close(SDPDatabase);

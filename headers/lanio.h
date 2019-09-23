@@ -300,9 +300,9 @@ gint callback_returnSQLCount(gpointer ReturnCount, gint ColumnCount,
 gint callback_printSDPInCSV(gpointer Useless, gint ColumnCount,
                                 gchar **DataRow, gchar **ColumnRow);
 
-void printMDNSEntries(void);
+void printMDNSEntries(gboolean PrintMode);
 
-void printSDPFilesEntries(void);
+void printSDPFilesEntries(gboolean PrintMode);
 
 gint callback_insertSDPEntriesInFormattedTable
 (

@@ -1521,7 +1521,7 @@ void printSAPEntries(sqlite3 *SDPDatabase, gboolean PrintMode)
 
     g_free(SQLCountQuery);
 
-    if(SQLCount <= 0)
+    if(SQLCount <= 0 && PrintMode == SDP_DATABASE_PRINT_MODE_NICE)
     {
         g_printerr(SAP_TABLE_DISPLAY_NAME " : No current streams.\n");
         return;
@@ -1637,18 +1637,20 @@ gint callback_printSDPInCSV(gpointer Useless, gint ColumnCount,
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void printMDNSEntries(void)
+void printMDNSEntries(gboolean PrintMode)
 {
-    g_printerr(MDNS_TABLE_DISPLAY_NAME " : No current streams.\n");
+    if(PrintMode == SDP_DATABASE_PRINT_MODE_NICE)
+        g_printerr(MDNS_TABLE_DISPLAY_NAME " : No current streams.\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void printSDPFilesEntries(void)
+void printSDPFilesEntries(gboolean PrintMode)
 {
-    g_printerr(SDPFILES_TABLE_DISPLAY_NAME " : No current streams.\n");
+    if(PrintMode == SDP_DATABASE_PRINT_MODE_NICE)
+        g_printerr(SDPFILES_TABLE_DISPLAY_NAME " : No current streams.\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
