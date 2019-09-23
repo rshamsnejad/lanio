@@ -61,7 +61,7 @@
 #define WORKING_TEMP_DIRECTORY_NAME         "lanio"
 #define WORKING_DIRECTORY_MASK              0744
 
-#define SDP_DATABASE_FILENAME               "SDP.db"
+#define SDP_DATABASE_FILENAME               "lanio-SDP.db"
 #define SDP_DATABASE_PRINT_MODE_NICE        0
 #define SDP_DATABASE_PRINT_MODE_CSV         1
 
