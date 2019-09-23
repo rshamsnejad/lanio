@@ -1540,6 +1540,12 @@ void printSAPEntries(sqlite3 *SDPDatabase, gboolean PrintMode)
 
     if(PrintMode == SDP_DATABASE_PRINT_MODE_CSV)
     {
+        g_print
+        (
+            "Hash,Stream type,Source name,Stream address,Channels,Bit depth,"
+            "Sample rate,PTP GMID,PTP domain\n"
+        );
+
         SQLiteExecErrorCode =
             sqlite3_exec
             (
