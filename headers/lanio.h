@@ -205,15 +205,24 @@ typedef struct _ListDiscoveredCLIParameters
 
 // === Function prototypes ===
 
-void openSocket(GSocket **Socket, GSocketFamily SocketFamily,
-                    GSocketType SocketType,    GSocketProtocol SocketProtocol);
+void openSocket
+(
+    GSocket **Socket,
+    GSocketFamily SocketFamily,
+    GSocketType SocketType,
+    GSocketProtocol SocketProtocol
+);
 
 void bindSocket(GSocket *Socket, gchar *Address, gint Port);
 
 void joinMulticastGroup(GSocket *Socket, gchar *MulticastAddressString);
 
-gssize receivePacket(GSocket *Socket, gchar *StringBuffer,
-                            gssize StringBufferSize);
+gssize receivePacket
+(
+    GSocket *Socket,
+    gchar *StringBuffer,
+    gssize StringBufferSize
+);
 
 void processGError(gchar *ErrorMessage, GError *ErrorStruct);
 
@@ -221,9 +230,12 @@ void processSQLiteOpenError(int SQLiteErrorCode);
 
 void createSAPTable(sqlite3 *SDPDatabase);
 
-void processSQLiteExecError(gint SQLiteExecErrorCode,
-                                gchar *SQLiteExecErrorString,
-                                    gchar *SQLQuery);
+void processSQLiteExecError
+(
+    gint SQLiteExecErrorCode,
+    gchar *SQLiteExecErrorString,
+    gchar *SQLQuery
+);
 
 SAPPacket* convertSAPStringToStruct(gchar *SAPString);
 
@@ -235,16 +247,22 @@ void printSAPPacket(SAPPacket *PacketToPrint);
 
 void insertSAPPacketInSAPTable(sqlite3 *SDPDatabase, SAPPacket* PacketToInsert);
 
-void removeSAPPacketFromSAPTable(sqlite3 *SDPDatabase,
-                                    SAPPacket* PacketToRemove);
+void removeSAPPacketFromSAPTable
+(
+    sqlite3 *SDPDatabase,
+    SAPPacket* PacketToRemove
+);
 
 void updateSAPTable(sqlite3 *SDPDatabase, SAPPacket *PacketToProcess);
 
 gboolean callback_deleteOldSDPEntries(gpointer Data);
 
-gboolean callback_insertIncomingSAPPackets(GSocket *Socket,
-                                             GIOCondition condition,
-                                                gpointer Data);
+gboolean callback_insertIncomingSAPPackets
+(
+    GSocket *Socket,
+    GIOCondition condition,
+    gpointer Data
+);
 
 gboolean checkSAPPacket(SAPPacket *PacketToCheck);
 
@@ -252,9 +270,12 @@ void setUpSAPPacketLoop(GMainLoop *Loop, GSocket *Socket, sqlite3 *Database);
 
 void discoverSAPAnnouncements(sqlite3 *SDPDatabase);
 
-void parseDiscoveryCLIOptions(DiscoveryCLIParameters *Parameters,
-                                gint argc,
-                                    gchar *argv[]);
+void parseDiscoveryCLIOptions
+(
+    DiscoveryCLIParameters *Parameters,
+    gint argc,
+    gchar *argv[]
+);
 
 guint getStringArraySize(gchar **StringArray);
 
@@ -265,11 +286,14 @@ void initDiscoveryCLIParameters(DiscoveryCLIParameters *ParametersToInit);
 void daemonizeDiscovery(void);
 
 void initListDiscoveredCLIParameters
-        (ListDiscoveredCLIParameters *ParametersToInit);
+    (ListDiscoveredCLIParameters *ParametersToInit);
 
-void parseListDiscoveredCLIOptions(ListDiscoveredCLIParameters *Parameters,
-                                        gint argc,
-                                            gchar *argv[]);
+void parseListDiscoveredCLIOptions
+(
+    ListDiscoveredCLIParameters *Parameters,
+    gint argc,
+    gchar *argv[]
+);
 
 void checkCLIParameters(gboolean Expression, GOptionContext *Context);
 
@@ -279,14 +303,23 @@ gboolean checkValidSDPString(gchar *sdp);
 
 void callback_printHashTable(gpointer Key, gpointer Value, gpointer Data);
 
-gboolean checkRegex(gchar *Pattern, gchar *String,
-                        GRegexCompileFlags CompileFlags,
-                            GRegexMatchFlags MatchFlags, GMatchInfo **MatchInfo);
+gboolean checkRegex
+(
+    gchar *Pattern,
+    gchar *String,
+    GRegexCompileFlags CompileFlags,
+    GRegexMatchFlags MatchFlags,
+    GMatchInfo **MatchInfo
+);
 
 SDPParameters* convertSDPStringToStruct(gchar *SDPStringToProcess);
 
-void callback_insertAttributeTableinSDPStruct(gpointer Key, gpointer Value,
-                                                gpointer SDPStruct);
+void callback_insertAttributeTableinSDPStruct
+(
+    gpointer Key,
+    gpointer Value,
+    gpointer SDPStruct
+);
 
 void printSDPStruct(SDPParameters *StructToPrint);
 
@@ -294,11 +327,21 @@ void freeSDPStruct(SDPParameters *StructToFree);
 
 void printSAPEntries(sqlite3 *SDPDatabase, gboolean PrintMode);
 
-gint callback_returnSQLCount(gpointer ReturnCount, gint ColumnCount,
-                                gchar **DataRow, gchar **ColumnRow);
+gint callback_returnSQLCount
+(
+    gpointer ReturnCount,
+    gint ColumnCount,
+    gchar **DataRow,
+    gchar **ColumnRow
+);
 
-gint callback_printSDPInCSV(gpointer Useless, gint ColumnCount,
-                                gchar **DataRow, gchar **ColumnRow);
+gint callback_printSDPInCSV
+(
+    gpointer Useless,
+    gint ColumnCount,
+    gchar **DataRow,
+    gchar **ColumnRow
+);
 
 void printMDNSEntries(gboolean PrintMode);
 

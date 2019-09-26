@@ -4,8 +4,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void openSocket(GSocket **Socket, GSocketFamily SocketFamily,
-                    GSocketType SocketType,	GSocketProtocol SocketProtocol)
+void openSocket
+(
+    GSocket **Socket,
+    GSocketFamily SocketFamily,
+    GSocketType SocketType,
+    GSocketProtocol SocketProtocol
+)
 {
     GError *SocketOpenError = NULL;
 
@@ -59,8 +64,12 @@ void joinMulticastGroup(GSocket *Socket, gchar *MulticastAddressString)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-gssize receivePacket(GSocket *Socket, gchar *StringBuffer,
-                            gssize StringBufferSize)
+gssize receivePacket
+(
+    GSocket *Socket,
+    gchar *StringBuffer,
+    gssize StringBufferSize
+)
 {
     // Reinitialize the packet string buffer
     memset(StringBuffer, '\0', StringBufferSize);
@@ -175,9 +184,12 @@ void createSAPTable(sqlite3 *SDPDatabase)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void processSQLiteExecError(gint SQLiteExecErrorCode,
-                                gchar *SQLiteExecErrorString,
-                                    gchar *SQLQuery)
+void processSQLiteExecError
+(
+    gint SQLiteExecErrorCode,
+    gchar *SQLiteExecErrorString,
+    gchar *SQLQuery
+)
 {
     if(SQLiteExecErrorCode != 0)
     {
@@ -447,8 +459,11 @@ void insertSAPPacketInSAPTable(sqlite3 *SDPDatabase, SAPPacket *PacketToInsert)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void removeSAPPacketFromSAPTable(sqlite3 *SDPDatabase,
-                                    SAPPacket* PacketToRemove)
+void removeSAPPacketFromSAPTable
+(
+    sqlite3 *SDPDatabase,
+    SAPPacket* PacketToRemove
+)
 {
     gint SQLiteExecErrorCode = 0;
     gchar *SQLiteExecErrorString = NULL;
@@ -546,9 +561,12 @@ gboolean callback_deleteOldSDPEntries(gpointer Data)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-gboolean callback_insertIncomingSAPPackets(GSocket *Socket,
-                                             GIOCondition condition,
-                                                gpointer Data)
+gboolean callback_insertIncomingSAPPackets
+(
+    GSocket *Socket,
+    GIOCondition condition,
+    gpointer Data
+)
 {
     gchar SAPPacketBuffer[SAP_PACKET_BUFFER_SIZE] = {'\0'};
     gssize SAPPacketBufferBytesRead = 0;
@@ -682,9 +700,12 @@ void discoverSAPAnnouncements(sqlite3 *SDPDatabase)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void parseDiscoveryCLIOptions(DiscoveryCLIParameters *Parameters,
-                                gint argc,
-                                    gchar *argv[])
+void parseDiscoveryCLIOptions
+(
+    DiscoveryCLIParameters *Parameters,
+    gint argc,
+    gchar *argv[]
+)
 {
     GOptionEntry CommandLineOptionEntries[] =
     {
@@ -863,7 +884,7 @@ void daemonizeDiscovery(void)
 ////////////////////////////////////////////////////////////////////////////////
 
 void initListDiscoveredCLIParameters
-        (ListDiscoveredCLIParameters *ParametersToInit)
+    (ListDiscoveredCLIParameters *ParametersToInit)
 {
     ParametersToInit->CSV = FALSE;
     ParametersToInit->StreamCategory = NULL;
@@ -873,9 +894,12 @@ void initListDiscoveredCLIParameters
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void parseListDiscoveredCLIOptions(ListDiscoveredCLIParameters *Parameters,
-                                        gint argc,
-                                            gchar *argv[])
+void parseListDiscoveredCLIOptions
+(
+    ListDiscoveredCLIParameters *Parameters,
+    gint argc,
+    gchar *argv[]
+)
 {
     GOptionEntry CommandLineOptionEntries[] =
     {
@@ -1088,9 +1112,14 @@ void callback_printHashTable(gpointer Key, gpointer Value, gpointer Data)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-gboolean checkRegex(gchar *Pattern, gchar *String,
-                        GRegexCompileFlags CompileFlags,
-                            GRegexMatchFlags MatchFlags, GMatchInfo **MatchInfo)
+gboolean checkRegex
+(
+    gchar *Pattern,
+    gchar *String,
+    GRegexCompileFlags CompileFlags,
+    GRegexMatchFlags MatchFlags,
+    GMatchInfo **MatchInfo
+)
 {
     GError *RegexError = NULL;
     GRegex *Regex =
@@ -1318,8 +1347,12 @@ SDPParameters* convertSDPStringToStruct(gchar *SDPStringToProcess)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void callback_insertAttributeTableinSDPStruct(gpointer Key, gpointer Value,
-                                                gpointer SDPStruct)
+void callback_insertAttributeTableinSDPStruct
+(
+    gpointer Key,
+    gpointer Value,
+    gpointer SDPStruct
+)
 {
     if(g_strcmp0((gchar*) Key, "mediaclk") == 0)
     {
@@ -1613,8 +1646,13 @@ void printSAPEntries(sqlite3 *SDPDatabase, gboolean PrintMode)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-gint callback_returnSQLCount(gpointer ReturnCount, gint ColumnCount,
-                                gchar **DataRow, gchar **ColumnRow)
+gint callback_returnSQLCount
+(
+    gpointer ReturnCount,
+    gint ColumnCount,
+    gchar **DataRow,
+    gchar **ColumnRow
+)
 {
     gint *Temp = (gint*) ReturnCount;
     *Temp = atoi(DataRow[0]);
@@ -1626,8 +1664,13 @@ gint callback_returnSQLCount(gpointer ReturnCount, gint ColumnCount,
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-gint callback_printSDPInCSV(gpointer Useless, gint ColumnCount,
-                                gchar **DataRow, gchar **ColumnRow)
+gint callback_printSDPInCSV
+(
+    gpointer Useless,
+    gint ColumnCount,
+    gchar **DataRow,
+    gchar **ColumnRow
+)
 {
     gsize i;
     for(i = 0 ; i < ColumnCount - 1 ; i++)
