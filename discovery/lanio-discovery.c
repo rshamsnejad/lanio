@@ -51,12 +51,17 @@ gint main(gint argc, gchar *argv[])
     );
     g_free(SDPDatabasePath);
 
+    g_log_set_writer_func
+    (
+        lanioLogWriter,
+        &(CommandLineParameters.DiscoverTerminal),
+        NULL
+    );
+
     // Start the main loop in the terminal or as a daemon
     if(CommandLineParameters.DiscoverTerminal)
     {
         g_debug(PROG_NAME " Discovery : mode terminal");
-
-        g_log_set_writer_func(g_log_writer_standard_streams, NULL, NULL);
 
         discoverSAPAnnouncements(SDPDatabase);
     }

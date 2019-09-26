@@ -876,7 +876,6 @@ void daemonizeDiscovery(void)
     close(STDERR_FILENO);
 
     /* Daemon-specific initialization goes here */
-    g_log_set_writer_func(g_log_writer_journald, NULL, NULL);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1720,6 +1719,29 @@ gint callback_insertSDPEntriesInFormattedTable
     ft_row_write_ln(Table, ColumnCount, Row);
 
     return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+GLogWriterOutput lanioLogWriter
+(
+    GLogLevelFlags LogLevel,
+    const GLogField *Fields,
+    gsize NumberOfFields,
+    gpointer Data
+)
+{
+    if(LogLevel > G_LOG_LEVEL_INFO)
+        return G_LOG_WRITER_HANDLED;
+
+    if(((DiscoveryCLIParameters*) Data)->DiscoverTerminal)
+        g_log_writer_standard_streams(LogLevel, Fields, NumberOfFields, NULL);
+    else
+        g_log_writer_journald(LogLevel, Fields, NumberOfFields, NULL);
+
+    return G_LOG_WRITER_HANDLED;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
