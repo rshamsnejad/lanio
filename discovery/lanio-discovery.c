@@ -18,14 +18,6 @@ Discover SAP announcement of Dante streams.
 
 gint main(gint argc, gchar *argv[])
 {
-    g_debug
-    (
-        "GLib version %u.%u.%u",
-        glib_major_version,
-        glib_minor_version,
-        glib_micro_version
-    );
-
     // Parse the command-line options
     DiscoveryCLIParameters CommandLineParameters;
     initDiscoveryCLIParameters(&CommandLineParameters);
@@ -51,11 +43,21 @@ gint main(gint argc, gchar *argv[])
     );
     g_free(SDPDatabasePath);
 
+    // Redirect the logs to stdout/stderr or journald
+    // depending on the CLI parameters
     g_log_set_writer_func
     (
         lanioLogWriter,
         &(CommandLineParameters.DiscoverTerminal),
         NULL
+    );
+
+    g_debug
+    (
+        "GLib version %u.%u.%u",
+        glib_major_version,
+        glib_minor_version,
+        glib_micro_version
     );
 
     // Start the main loop in the terminal or as a daemon
