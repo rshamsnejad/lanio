@@ -713,6 +713,10 @@ void parseDiscoveryCLIOptions
             &Parameters->DiscoverTerminal,
             "Start stream discovery in the terminal instead of as a daemon",
             NULL },
+        { "debug", 'd', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
+            &Parameters->Debug,
+            "Enable debugging output (verbose)",
+            NULL },
         { NULL }
     };
 
@@ -830,6 +834,7 @@ gchar* getSDPDatabasePath(void)
 void initDiscoveryCLIParameters(DiscoveryCLIParameters *ParametersToInit)
 {
     ParametersToInit->DiscoverTerminal = FALSE;
+    ParametersToInit->Debug = FALSE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1733,7 +1738,15 @@ GLogWriterOutput lanioLogWriter
     gpointer Data
 )
 {
-    if(LogLevel > G_LOG_LEVEL_INFO)
+    GLogLevelFlags WantedLogLevel;
+
+    if(((DiscoveryCLIParameters*) Data)->Debug)
+        WantedLogLevel = G_LOG_LEVEL_DEBUG;
+    else
+        WantedLogLevel = G_LOG_LEVEL_INFO;
+
+
+    if(LogLevel > WantedLogLevel)
         return G_LOG_WRITER_HANDLED;
 
     if(((DiscoveryCLIParameters*) Data)->DiscoverTerminal)

@@ -170,6 +170,7 @@ typedef struct _data_insertIncomingSAPPackets
 typedef struct _DiscoveryCLIParameters
 {
     gboolean    DiscoverTerminal;
+    gboolean    Debug;
 }
     DiscoveryCLIParameters;
 
