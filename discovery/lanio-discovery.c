@@ -64,19 +64,16 @@ gint main(gint argc, gchar *argv[])
     if(CommandLineParameters.DiscoverTerminal)
     {
         g_debug(PROG_NAME " Discovery : mode terminal");
-
-        discoverSAPAnnouncements(SDPDatabase);
     }
     else // if(!CommandLineParameters.DiscoverTerminal)
     {
         g_debug(PROG_NAME " Discovery : mode daemon");
 
         daemonizeDiscovery();
-
-        g_info(PROG_LONG_NAME "\n-- Started network discovery");
-
-        discoverSAPAnnouncements(SDPDatabase);
     }
+
+    g_info(PROG_LONG_NAME "\n-- Started network discovery");
+    discoverSAPAnnouncements(SDPDatabase);
 
 
     sqlite3_close(SDPDatabase);
