@@ -48,7 +48,7 @@ gint main(gint argc, gchar *argv[])
     g_log_set_writer_func
     (
         lanioLogWriter,
-        &(CommandLineParameters.DiscoverTerminal),
+        &CommandLineParameters,
         NULL
     );
 
