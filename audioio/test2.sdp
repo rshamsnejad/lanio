@@ -1,0 +1,14 @@
+v=0
+o=- 952910156 952910156 IN IP4 169.254.179.209
+s=Y001-DantePCIe : 12
+c=IN IP4 239.69.52.110/32
+t=0 0
+a=keywds:Dante
+m=audio 5004 RTP/AVP 97
+i=2 channels: 13, 14
+a=recvonly
+a=rtpmap:97 L24/48000/2
+a=ptime:1
+a=ts-refclk:ptp=IEEE1588-2008:00-1D-C1-FF-FE-08-0C-F0:0
+a=mediaclk:direct=1309091455
+
