@@ -13,11 +13,13 @@
 #include <string.h>
 //#include <errno.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 
 // === GLib headers ===
 
 #define G_LOG_USE_STRUCTURED                TRUE
 #include <glib.h>
+#include <glib/gstdio.h>
 #include <gio/gio.h>
 
 // === SQLite headers ===

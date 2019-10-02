@@ -72,11 +72,38 @@ gint main(gint argc, gchar *argv[])
         daemonizeDiscovery();
     }
 
+/////////////// LOCK ////////////////
+
+    FILE *DiscoveryLockFile = g_fopen("/tmp/lanio-discovery.lock", "w+");
+
+    if(!DiscoveryLockFile)
+    {
+        g_error("File open error\n");
+        exit(EXIT_FAILURE);
+    }
+
+    struct flock DiscoveryLock;
+    memset(&DiscoveryLock, 0, sizeof(DiscoveryLock));
+
+    DiscoveryLock.l_type = F_WRLCK;
+    DiscoveryLock.l_whence = SEEK_SET;
+    DiscoveryLock.l_start = 0;
+    DiscoveryLock.l_len = 0;
+
+    if(fcntl(fileno(DiscoveryLockFile), F_SETLK, &DiscoveryLock) == -1)
+    {
+        g_error("File lock error\n");
+        exit(EXIT_FAILURE);
+    }
+
+/////////////// LOCK ////////////////
+
     g_info(PROG_LONG_NAME "\n-- Started network discovery");
     discoverSAPAnnouncements(SDPDatabase);
 
 
     sqlite3_close(SDPDatabase);
+    fclose(DiscoveryLockFile);
 
     g_debug("Reached end of main() in lanio-discovery.c");
     return EXIT_SUCCESS;
