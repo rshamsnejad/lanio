@@ -1505,7 +1505,7 @@ void printSDPStruct(SDPParameters *StructToPrint)
     g_debug("PTP GM Clock Domain :\t\t%u",
         StructToPrint->PTPGrandMasterClockDomain);
     g_debug("PTP GM Clock ID :\t\t%s", StructToPrint->PTPGrandMasterClockID);
-    g_debug("Offset from GM Clock :\t%u", StructToPrint->OffsetFromMasterClock);
+    g_debug("Offset from GM Clock :\t%lu", StructToPrint->OffsetFromMasterClock);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
