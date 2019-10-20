@@ -45,6 +45,8 @@
 // in order to listen to all local interfaces
 #define SAP_LOCAL_ADDRESS                   "0.0.0.0"
 
+#define NETWORK_INTERFACES_PATH             "/sys/class/net"
+
 #define SDP_MAX_LENGTH                      2048
 #define MIME_TYPE_MAX_LENGTH                256
 #define SAP_IDENTIFIER_HASH_LENGTH          16
@@ -171,6 +173,7 @@ typedef struct _DiscoveryCLIParameters
 {
     gboolean    DiscoverTerminal;
     gboolean    Debug;
+    gchar      *Interface;
 }
     DiscoveryCLIParameters;
 
@@ -216,7 +219,12 @@ void openSocket
 
 void bindSocket(GSocket *Socket, gchar *Address, gint Port);
 
-void joinMulticastGroup(GSocket *Socket, gchar *MulticastAddressString);
+void joinMulticastGroup
+(
+    GSocket *Socket,
+    gchar *MulticastAddressString,
+    gchar *InterfaceName
+);
 
 gssize receivePacket
 (
@@ -269,7 +277,7 @@ gboolean checkSAPPacket(SAPPacket *PacketToCheck);
 
 void setUpSAPPacketLoop(GMainLoop *Loop, GSocket *Socket, sqlite3 *Database);
 
-void discoverSAPAnnouncements(sqlite3 *SDPDatabase);
+void discoverSAPAnnouncements(sqlite3 *SDPDatabase, gchar *InterfaceName);
 
 void parseDiscoveryCLIOptions
 (
@@ -363,6 +371,8 @@ GLogWriterOutput lanioLogWriter
     gsize NumberOfFields,
     gpointer Data
 );
+
+gboolean checkNetworkInterfaceName(gchar *InterfaceName);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

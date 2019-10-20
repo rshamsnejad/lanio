@@ -44,14 +44,19 @@ void bindSocket(GSocket *Socket, gchar *Address, gint Port)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void joinMulticastGroup(GSocket *Socket, gchar *MulticastAddressString)
+void joinMulticastGroup
+(
+    GSocket *Socket,
+    gchar *MulticastAddressString,
+    gchar *InterfaceName
+)
 {
     GInetAddress *MulticastAddress =
         g_inet_address_new_from_string(MulticastAddressString);
     GError *MulticastJoinError = NULL;
 
     g_socket_join_multicast_group(Socket, MulticastAddress,
-                                    FALSE, NULL, &MulticastJoinError);
+                                    FALSE, InterfaceName, &MulticastJoinError);
         // FALSE : No need for source-specific multicast
         // NULL : Listen on all Ethernet interfaces
 
@@ -666,7 +671,7 @@ void setUpSAPPacketLoop(GMainLoop *Loop, GSocket *Socket, sqlite3 *Database)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void discoverSAPAnnouncements(sqlite3 *SDPDatabase)
+void discoverSAPAnnouncements(sqlite3 *SDPDatabase, gchar *InterfaceName)
 {
     // Set up an UDP/IPv4 socket for SAP discovery
     GSocket *SAPSocket = NULL;
@@ -678,7 +683,7 @@ void discoverSAPAnnouncements(sqlite3 *SDPDatabase)
     bindSocket(SAPSocket, SAP_LOCAL_ADDRESS, SAP_MULTICAST_PORT);
 
     // Subscribe to the SAP Multicast group
-    joinMulticastGroup(SAPSocket, SAP_MULTICAST_ADDRESS);
+    joinMulticastGroup(SAPSocket, SAP_MULTICAST_ADDRESS, InterfaceName);
 
     // Create the SAP table if it does not exist in the database
     createSAPTable(SDPDatabase);
@@ -710,6 +715,10 @@ void parseDiscoveryCLIOptions
 {
     GOptionEntry CommandLineOptionEntries[] =
     {
+        { "interface", 'i', G_OPTION_FLAG_NONE, G_OPTION_ARG_STRING,
+            &Parameters->Interface,
+            "Network interface to listen to (mandatory)",
+            NULL },
         { "terminal", 't', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
             &Parameters->DiscoverTerminal,
             "Start stream discovery in the terminal instead of as a daemon",
@@ -743,7 +752,10 @@ void parseDiscoveryCLIOptions
 
     parseCLIContext(CommandLineOptionContext, argc, argv);
 
-    gboolean CheckParameters = TRUE;
+    gboolean CheckParameters =
+        Parameters->Interface != NULL &&
+        checkNetworkInterfaceName(Parameters->Interface);
+
     checkCLIParameters(CheckParameters, CommandLineOptionContext);
 
     g_option_context_free(CommandLineOptionContext);
@@ -836,6 +848,7 @@ void initDiscoveryCLIParameters(DiscoveryCLIParameters *ParametersToInit)
 {
     ParametersToInit->DiscoverTerminal = FALSE;
     ParametersToInit->Debug = FALSE;
+    ParametersToInit->Interface = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1757,6 +1770,45 @@ GLogWriterOutput lanioLogWriter
         g_log_writer_journald(LogLevel, Fields, NumberOfFields, NULL);
 
     return G_LOG_WRITER_HANDLED;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+gboolean checkNetworkInterfaceName(gchar *InterfaceName)
+{
+    gboolean ReturnValue = FALSE;
+
+    GError *DirectoryError = NULL;
+    GDir *InterfaceDirectory =
+        g_dir_open(NETWORK_INTERFACES_PATH, 0, &DirectoryError);
+        // 0 : Flags, currently unused. Reserved for future GLib versions.
+
+    processGError
+    (
+        "Unable to open network interfaces directory",
+        DirectoryError
+    );
+
+    const gchar *FileName = NULL;
+    while( (FileName = g_dir_read_name(InterfaceDirectory)) )
+    {
+        if(g_strcmp0(FileName, InterfaceName) == 0)
+        {
+            ReturnValue = TRUE;
+            break;
+        }
+    }
+
+    g_dir_close(InterfaceDirectory);
+
+    if(!ReturnValue)
+    {
+        g_warning("%s : Invalid network interface name.\n", InterfaceName);
+    }
+
+    return ReturnValue;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
