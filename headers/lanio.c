@@ -390,22 +390,22 @@ void insertSAPPacketInSAPTable(sqlite3 *SDPDatabase, SAPPacket *PacketToInsert)
             "( "
                 "NULL, "
                 SQLITE_UNIX_CURRENT_TS_ESCAPED ", "
-                "'%u', " // Hash
+                "'%" G_GUINT16_FORMAT "', " // Hash
                 "'%s', " // Source address
                 "'%s', " // SDP
                 "'%s', " // Source type
                 "'%s', " // Source name
                 "'%s', " // Source info
                 "'%s', " // Stream address
-                "'%u', " // UDP port
+                "'%" G_GUINT16_FORMAT "', " // UDP port
                 "'%u', " // Payload type
                 "'%u', " // Bit depth
-                "'%u', " // Sample rate
+                "'%" G_GUINT32_FORMAT "', " // Sample rate
                 "'%u', " // Channel count
-                "'%u', " // Packet time
+                "'%" G_GUINT16_FORMAT "', " // Packet time
                 "'%u', " // PTP domain
                 "'%s', " // PTP GMID
-                "'%lu' " // Offset from GM
+                "'%" G_GUINT64_FORMAT "' " // Offset from GM
             ") "
             "ON CONFLICT (sap_hash) "
                 "DO UPDATE SET timestamp = " SQLITE_UNIX_CURRENT_TS_ESCAPED,
@@ -471,7 +471,8 @@ void removeSAPPacketFromSAPTable
     gchar *SQLQuery =
         g_strdup_printf
         (
-            "DELETE FROM " SAP_TABLE_NAME " WHERE sap_hash = %d",
+            "DELETE FROM " SAP_TABLE_NAME " "
+            "WHERE sap_hash = %" G_GUINT16_FORMAT,
             PacketToRemove->MessageIdentifierHash
         );
 
@@ -1496,16 +1497,17 @@ void printSDPStruct(SDPParameters *StructToPrint)
     g_debug("Source Name :\t\t\t%s", StructToPrint->SourceName);
     g_debug("Source Info :\t\t\t%s", StructToPrint->SourceInfo);;
     g_debug("Stream Address :\t\t%s", StructToPrint->StreamAddress);
-    g_debug("UDP Port :\t\t\t%u", StructToPrint->UDPPort);
+    g_debug("UDP Port :\t\t\t%" G_GUINT16_FORMAT, StructToPrint->UDPPort);
     g_debug("Payload Type :\t\t%u", StructToPrint->PayloadType);
     g_debug("Bit Depth :\t\t\t%u", StructToPrint->BitDepth);
-    g_debug("Sample Rate :\t\t\t%u", StructToPrint->SampleRate);
+    g_debug("Sample Rate :\t\t\t%" G_GUINT32_FORMAT, StructToPrint->SampleRate);
     g_debug("Channel Count :\t\t%u", StructToPrint->ChannelCount);
-    g_debug("Packet Time :\t\t\t%u", StructToPrint->PacketTime);
+    g_debug("Packet Time :\t\t\t%" G_GUINT16_FORMAT, StructToPrint->PacketTime);
     g_debug("PTP GM Clock Domain :\t\t%u",
         StructToPrint->PTPGrandMasterClockDomain);
     g_debug("PTP GM Clock ID :\t\t%s", StructToPrint->PTPGrandMasterClockID);
-    g_debug("Offset from GM Clock :\t%lu", StructToPrint->OffsetFromMasterClock);
+    g_debug("Offset from GM Clock :\t%" G_GUINT64_FORMAT,
+        StructToPrint->OffsetFromMasterClock);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
