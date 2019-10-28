@@ -2,7 +2,7 @@
 #include <gio/gio.h>
 #include <stdlib.h>
 
-void countdown()
+void countdown(void)
 {
     for(gsize i = 5 ; i >= 1 ; i--)
     {
