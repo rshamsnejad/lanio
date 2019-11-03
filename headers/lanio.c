@@ -455,7 +455,11 @@ void insertSAPPacketInSAPTable(sqlite3 *SDPDatabase, SAPPacket *PacketToInsert)
             PacketToInsert->MessageIdentifierHash
         );
 
+    freeSDPStruct(SDPParametersToInsert);
     g_free(SQLQuery);
+
+    return;
+
     error:
         g_free(SDPParametersToInsert);
 }
