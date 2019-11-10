@@ -1991,12 +1991,86 @@ void parseReceiveCLIOptions
     parseCLIContext(CommandLineOptionContext, argc, argv);
 
     gboolean CheckParameters =
-        (!!Parameters->JACK) ^ (!!Parameters->ALSADevice) && // XOR
+        ( // (JACK mode) XOR (ALSA mode)
+            !!Parameters->JACK ^
+            (
+                !!Parameters->ALSADevice &&
+                !!checkALSADeviceName(Parameters->ALSADevice)
+            )
+        ) &&
         Parameters->StreamID;
 
     checkCLIParameters(CheckParameters, CommandLineOptionContext);
 
     g_option_context_free(CommandLineOptionContext);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+gchar** getALSADeviceList(void)
+{
+    gchar *stdout = NULL;
+    gchar *stderr = NULL;
+    gint status = 0;
+    GError *ALSACheckError = NULL;
+
+    gchar **ReturnStringArray = NULL;
+
+    g_spawn_command_line_sync
+    (
+        "sh -c 'aplay -L | grep ^hw:'",
+        &stdout,
+        &stderr,
+        &status,
+        NULL
+    );
+
+    g_spawn_check_exit_status(status, &ALSACheckError);
+
+    if(stderr)
+        g_printerr(stderr);
+    processGError("Error checking available ALSA devices", ALSACheckError);
+
+    ReturnStringArray = g_strsplit(stdout, "\n", 0);
+        // 0 : split all the string
+
+    g_free(stdout);
+    g_free(stderr);
+
+    g_debug("ALSA DEVICES :");
+
+    for
+    (
+        gsize i = 0;
+        ReturnStringArray[i] != NULL && ReturnStringArray[i][0] != '\0';
+        i++
+    )
+    {
+        g_debug("%s", ReturnStringArray[i]);
+    }
+
+    return ReturnStringArray;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+gboolean checkALSADeviceName(gchar *NameToCheck)
+{
+    if(!NameToCheck)
+        return FALSE;
+
+    gchar **ALSADeviceList = getALSADeviceList();
+    gboolean ReturnValue = FALSE;
+
+    ReturnValue = g_strv_contains((const gchar**) ALSADeviceList, NameToCheck);
+
+    g_strfreev(ALSADeviceList);
+
+    return ReturnValue;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
