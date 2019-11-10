@@ -1983,7 +1983,8 @@ void parseReceiveCLIOptions
     g_option_context_set_description
     (
         CommandLineOptionContext,
-        "Version " PROG_VERSION "\nReport bugs to dev@lanio.com"
+        "Version " PROG_VERSION "\n"
+        "Report bugs to " PROG_MAINTAINER_NAME " <" PROG_MAINTAINER_EMAIL ">"
     );
     g_option_context_add_main_entries
     (
