@@ -172,7 +172,7 @@ typedef struct _data_insertIncomingSAPPackets
 
 typedef struct _DiscoveryCLIParameters
 {
-    gboolean    DiscoverTerminal;
+    gboolean    Terminal;
     gboolean    Debug;
     gchar      *Interface;
 }
@@ -217,6 +217,13 @@ typedef struct _WorkingDirectoryList
     gchar      *DiscoveryWorkingDirectory;
 }
     WorkingDirectoryList;
+
+typedef struct _data_lanioLogWriter
+{
+    gboolean    Terminal;
+    gboolean    Debug;
+}
+    data_lanioLogWriter;
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

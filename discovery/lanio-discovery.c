@@ -30,10 +30,13 @@ gint main(gint argc, gchar *argv[])
 
     // Redirect the logs to stdout/stderr or journald
     // depending on the CLI parameters
+    data_lanioLogWriter LogParameters;
+    LogParameters.Terminal = CommandLineParameters.Terminal;
+    LogParameters.Debug = CommandLineParameters.Debug;
     g_log_set_writer_func
     (
         lanioLogWriter,
-        &CommandLineParameters,
+        &LogParameters,
         NULL
     );
 
@@ -67,11 +70,11 @@ gint main(gint argc, gchar *argv[])
     g_free(SDPDatabasePath);
 
     // Start the main loop in the terminal or as a daemon
-    if(CommandLineParameters.DiscoverTerminal)
+    if(CommandLineParameters.Terminal)
     {
         g_debug(PROG_NAME " Discovery : mode terminal");
     }
-    else // if(!CommandLineParameters.DiscoverTerminal)
+    else // if(!CommandLineParameters.Terminal)
     {
         g_debug(PROG_NAME " Discovery : mode daemon");
 
