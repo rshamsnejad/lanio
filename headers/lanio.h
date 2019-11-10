@@ -37,6 +37,8 @@
 #define PROG_NAME                           "LANIO"
 #define PROG_LONG_NAME                      "LANIO Audio Network I/O"
 #define PROG_VERSION                        "<under development>"
+#define PROG_MAINTAINER_NAME                "Robin SHAMSNEJAD"
+#define PROG_MAINTAINER_EMAIL               "linux.aes67@gmail.com"
 
 #define SAP_MULTICAST_ADDRESS               "239.255.255.255"
 #define SAP_MULTICAST_PORT                  9875

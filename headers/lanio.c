@@ -745,7 +745,8 @@ void parseDiscoveryCLIOptions
     g_option_context_set_description
     (
         CommandLineOptionContext,
-        "Version " PROG_VERSION "\nReport bugs to dev@lanio.com"
+        "Version " PROG_VERSION "\n"
+        "Report bugs to " PROG_MAINTAINER_NAME " <" PROG_MAINTAINER_EMAIL ">"
     );
     g_option_context_add_main_entries
     (
@@ -903,7 +904,8 @@ void parseListDiscoveredCLIOptions
     g_option_context_set_description
     (
         CommandLineOptionContext,
-        "Version " PROG_VERSION "\nReport bugs to dev@lanio.com"
+        "Version " PROG_VERSION "\n"
+        "Report bugs to " PROG_MAINTAINER_NAME " <" PROG_MAINTAINER_EMAIL ">"
     );
     g_option_context_add_main_entries
     (
@@ -1237,14 +1239,16 @@ SDPParameters* convertSDPStringToStruct(gchar *SDPStringToProcess)
         {
             // Split attribute line "a=key:value"
             GMatchInfo *RegexAttributeMatchInfo = NULL;
-            checkRegex
-            (
-                REGEX_SDP_VALUE_ATTRIBUTE,
-                ParameterArray[1],
-                G_REGEX_CASELESS,
-                G_REGEX_MATCH_NOTEMPTY,
-                &RegexAttributeMatchInfo
-            );
+
+            RegexCheck =
+                checkRegex
+                (
+                    REGEX_SDP_VALUE_ATTRIBUTE,
+                    ParameterArray[1],
+                    G_REGEX_CASELESS,
+                    G_REGEX_MATCH_NOTEMPTY,
+                    &RegexAttributeMatchInfo
+                );
 
             if(!RegexCheck)
             {
