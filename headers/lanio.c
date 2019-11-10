@@ -1843,6 +1843,8 @@ FILE* checkLockFile(gchar *LockFilePath, gchar *ErrorMessage)
         exit(EXIT_FAILURE);
     }
 
+    g_free(LockFilePath);
+
     return LockFile;
 }
 
