@@ -1237,14 +1237,16 @@ SDPParameters* convertSDPStringToStruct(gchar *SDPStringToProcess)
         {
             // Split attribute line "a=key:value"
             GMatchInfo *RegexAttributeMatchInfo = NULL;
-            checkRegex
-            (
-                REGEX_SDP_VALUE_ATTRIBUTE,
-                ParameterArray[1],
-                G_REGEX_CASELESS,
-                G_REGEX_MATCH_NOTEMPTY,
-                &RegexAttributeMatchInfo
-            );
+            
+            RegexCheck =
+                checkRegex
+                (
+                    REGEX_SDP_VALUE_ATTRIBUTE,
+                    ParameterArray[1],
+                    G_REGEX_CASELESS,
+                    G_REGEX_MATCH_NOTEMPTY,
+                    &RegexAttributeMatchInfo
+                );
 
             if(!RegexCheck)
             {
