@@ -20,6 +20,10 @@
 #include <glib.h>
 #include <gio/gio.h>
 
+// === GStreamer headers ===
+
+#include <gst/gst.h>
+
 // === SQLite headers ===
 
 #include <sqlite3.h>

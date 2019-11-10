@@ -47,6 +47,11 @@ gint main(gint argc, gchar *argv[])
         glib_minor_version,
         glib_micro_version
     );
+    g_debug
+    (
+        "%s",
+        gst_version_string()
+    );
 
     // Create and store the working directories' paths
     WorkingDirectoryList WorkingDirectories;
