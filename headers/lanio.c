@@ -1922,3 +1922,83 @@ void freeWorkingDirectoryList(WorkingDirectoryList *StructToFree)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+void initReceiveCLIParameters(ReceiveCLIParameters *ParametersToInit)
+{
+    ParametersToInit->Terminal      = FALSE;
+    ParametersToInit->Debug         = FALSE;
+    ParametersToInit->JACK          = FALSE;
+    ParametersToInit->ALSADevice    = NULL;
+    ParametersToInit->StreamID      = 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void parseReceiveCLIOptions
+(
+    ReceiveCLIParameters *Parameters,
+    gint argc,
+    gchar *argv[]
+)
+{
+    GOptionEntry CommandLineOptionEntries[] =
+    {
+        { "stream-id", 's', G_OPTION_FLAG_NONE, G_OPTION_ARG_INT,
+            &Parameters->StreamID,
+            "ID of the discovered AES67 stream to receive",
+            NULL },
+        { "jack", 'j', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
+            &Parameters->JACK,
+            "Interface with JACK server (not compatible with -a)",
+            NULL },
+        { "alsa-device", 'a', G_OPTION_FLAG_NONE, G_OPTION_ARG_STRING,
+            &Parameters->ALSADevice,
+            "ALSA device to output sound to (not compatible with -j)",
+            NULL },
+        { "terminal", 't', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
+            &Parameters->Terminal,
+            "Start in the terminal instead of as a daemon",
+            NULL },
+        { "debug", 'd', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
+            &Parameters->Debug,
+            "Enable debugging output (verbose)",
+            NULL },
+        { NULL }
+    };
+
+    GOptionContext *CommandLineOptionContext =
+        g_option_context_new("- " PROG_LONG_NAME);
+
+    g_option_context_set_summary
+    (
+        CommandLineOptionContext,
+        "Receive AES67 streams discovered by lanio-discovery"
+    );
+    g_option_context_set_description
+    (
+        CommandLineOptionContext,
+        "Version " PROG_VERSION "\nReport bugs to dev@lanio.com"
+    );
+    g_option_context_add_main_entries
+    (
+        CommandLineOptionContext,
+        CommandLineOptionEntries,
+        NULL
+    );
+
+    parseCLIContext(CommandLineOptionContext, argc, argv);
+
+    gboolean CheckParameters =
+        (!!Parameters->JACK) ^ (!!Parameters->ALSADevice) && // XOR
+        Parameters->StreamID;
+
+    checkCLIParameters(CheckParameters, CommandLineOptionContext);
+
+    g_option_context_free(CommandLineOptionContext);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////

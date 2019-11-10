@@ -225,6 +225,16 @@ typedef struct _data_lanioLogWriter
 }
     data_lanioLogWriter;
 
+typedef struct _ReceiveCLIParameters
+{
+    gboolean    Terminal;
+    gboolean    Debug;
+    gboolean    JACK;
+    gchar      *ALSADevice;
+    guint16     StreamID;
+}
+    ReceiveCLIParameters;
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -407,6 +417,15 @@ gchar* createDiscoveryDirectory(gchar *RootDirectory);
 void initWorkingDirectoryList(WorkingDirectoryList *StructToInit);
 
 void freeWorkingDirectoryList(WorkingDirectoryList *StructToFree);
+
+void initReceiveCLIParameters(ReceiveCLIParameters *ParametersToInit);
+
+void parseReceiveCLIOptions
+(
+    ReceiveCLIParameters *Parameters,
+    gint argc,
+    gchar *argv[]
+);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
