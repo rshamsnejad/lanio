@@ -18,14 +18,6 @@ Discover SAP announcement of Dante streams.
 
 gint main(gint argc, gchar *argv[])
 {
-    // Check if an instance is already running based on lock file
-    FILE *DiscoveryLockFile =
-        checkOrCreateLockFile
-        (
-            LOCK_FILE_PATH_DISCOVERY,
-            PROG_NAME " Discovery is already running. Aborting."
-        );
-
     // Parse the command-line options
     DiscoveryCLIParameters CommandLineParameters;
     initDiscoveryCLIParameters(&CommandLineParameters);
@@ -57,6 +49,14 @@ gint main(gint argc, gchar *argv[])
     WorkingDirectoryList WorkingDirectories;
     initWorkingDirectoryList(&WorkingDirectories);
 
+    // Check if an instance is already running based on lock file
+    FILE *DiscoveryLockFile =
+        checkOrCreateLockFile
+        (
+            LOCK_FILE_DISCOVERY,
+            &WorkingDirectories,
+            PROG_NAME " Discovery is already running. Aborting."
+        );
 
     // Set up the SDP Database file
     gchar *SDPDatabasePath =

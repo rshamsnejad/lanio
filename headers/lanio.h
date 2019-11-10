@@ -65,8 +65,7 @@
 #define WORKING_TEMP_DIRECTORY_NAME         "lanio"
 #define WORKING_SUBDIRECTORY_DISCOVERY_NAME "discovery"
 #define WORKING_DIRECTORY_MASK              0744
-#define LOCK_FILE_PATH_DISCOVERY \
-    g_strconcat(g_get_tmp_dir(),"/",WORKING_TEMP_DIRECTORY_NAME,"/lanio-discovery.lock",NULL)
+#define LOCK_FILE_DISCOVERY                 "lanio-discovery.lock"
 
 #define SDP_DATABASE_FILENAME               "lanio-SDP.db"
 #define SDP_DATABASE_PRINT_MODE_NICE        0
@@ -393,7 +392,12 @@ GLogWriterOutput lanioLogWriter
 
 gboolean checkNetworkInterfaceName(gchar *InterfaceName);
 
-FILE* checkOrCreateLockFile(gchar *LockFilePath, gchar *ErrorMessage);
+FILE* checkOrCreateLockFile
+(
+    gchar *LockFileName,
+    WorkingDirectoryList *WorkingDirectories,
+    gchar *ErrorMessage
+);
 
 void initRootWorkingDirectories(RootWorkingDirectories *StructToInit);
 

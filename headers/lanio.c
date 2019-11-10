@@ -1773,8 +1773,21 @@ gboolean checkNetworkInterfaceName(gchar *InterfaceName)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-FILE* checkOrCreateLockFile(gchar *LockFilePath, gchar *ErrorMessage)
+FILE* checkOrCreateLockFile
+(
+    gchar *LockFileName,
+    WorkingDirectoryList *WorkingDirectories,
+    gchar *ErrorMessage
+)
 {
+    gchar *LockFilePath =
+        g_strconcat
+        (
+            WorkingDirectories->RootWorkingDirectory,
+            "/", LockFileName,
+            NULL
+        );
+
     FILE *LockFile = g_fopen(LockFilePath, "w+");
 
     if(!LockFile)
@@ -1796,6 +1809,8 @@ FILE* checkOrCreateLockFile(gchar *LockFilePath, gchar *ErrorMessage)
         g_printerr("%s\n", ErrorMessage);
         exit(EXIT_FAILURE);
     }
+
+    g_debug("Lock file path : \t\t%s", LockFilePath);
 
     g_free(LockFilePath);
 
