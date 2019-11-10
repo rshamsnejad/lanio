@@ -20,7 +20,7 @@ gint main(gint argc, gchar *argv[])
 {
     // Check if an instance is already running based on lock file
     FILE *DiscoveryLockFile =
-        checkLockFile
+        checkOrCreateLockFile
         (
             LOCK_FILE_PATH_DISCOVERY,
             PROG_NAME " Discovery is already running. Aborting."

@@ -1819,7 +1819,7 @@ gboolean checkNetworkInterfaceName(gchar *InterfaceName)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-FILE* checkLockFile(gchar *LockFilePath, gchar *ErrorMessage)
+FILE* checkOrCreateLockFile(gchar *LockFilePath, gchar *ErrorMessage)
 {
     FILE *LockFile = g_fopen(LockFilePath, "w+");
 
