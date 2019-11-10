@@ -36,21 +36,6 @@ gint main(gint argc, gchar *argv[])
         argv
     );
 
-    // Set up the SDP Database file
-    gchar *SDPDatabasePath = getSDPDatabasePath();
-    sqlite3 *SDPDatabase = NULL;
-    processSQLiteOpenError
-    (
-        sqlite3_open_v2
-        (
-            SDPDatabasePath,
-            &SDPDatabase,
-            SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX,
-            NULL
-        )
-    );
-    g_free(SDPDatabasePath);
-
     // Redirect the logs to stdout/stderr or journald
     // depending on the CLI parameters
     g_log_set_writer_func
@@ -67,6 +52,27 @@ gint main(gint argc, gchar *argv[])
         glib_minor_version,
         glib_micro_version
     );
+
+    // Create and store the working directories' paths
+    WorkingDirectoryList WorkingDirectories;
+    initWorkingDirectoryList(&WorkingDirectories);
+
+
+    // Set up the SDP Database file
+    gchar *SDPDatabasePath =
+        getSDPDatabasePath(WorkingDirectories.DiscoveryWorkingDirectory);
+    sqlite3 *SDPDatabase = NULL;
+    processSQLiteOpenError
+    (
+        sqlite3_open_v2
+        (
+            SDPDatabasePath,
+            &SDPDatabase,
+            SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX,
+            NULL
+        )
+    );
+    g_free(SDPDatabasePath);
 
     // Start the main loop in the terminal or as a daemon
     if(CommandLineParameters.DiscoverTerminal)
@@ -91,6 +97,7 @@ gint main(gint argc, gchar *argv[])
 
     sqlite3_close(SDPDatabase);
     fclose(DiscoveryLockFile);
+    freeWorkingDirectoryList(&WorkingDirectories);
 
     g_debug("Reached end of main() in lanio-discovery.c");
     return EXIT_SUCCESS;

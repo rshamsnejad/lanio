@@ -781,65 +781,19 @@ guint getStringArraySize(gchar **StringArray)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-gchar* getSDPDatabasePath(void)
+gchar* getSDPDatabasePath(gchar *DiscoveryDirectory)
 {
     gchar *ReturnPath = NULL;
 
-    gchar *WorkingDirectory =
+    ReturnPath =
         g_strconcat
         (
-            g_get_home_dir(),
-            "/",
-            WORKING_HOME_DIRECTORY_NAME,
+            DiscoveryDirectory,
+            "/", SDP_DATABASE_FILENAME,
             NULL
         );
 
-    gint MkdirReturn =
-        g_mkdir_with_parents(WorkingDirectory, WORKING_DIRECTORY_MASK);
-
-    if(MkdirReturn == 0)
-        ReturnPath =
-            g_strconcat(WorkingDirectory, "/", SDP_DATABASE_FILENAME, NULL);
-    else
-    {
-        g_debug
-        (
-            "Unable to use directory %s. Falling back to temporary directory.",
-            WorkingDirectory
-        );
-
-        WorkingDirectory =
-            g_strconcat
-            (
-                g_get_tmp_dir(),
-                "/",
-                WORKING_TEMP_DIRECTORY_NAME,
-                NULL
-            );
-
-        MkdirReturn =
-            g_mkdir_with_parents(WorkingDirectory, WORKING_DIRECTORY_MASK);
-
-        if(MkdirReturn == 0)
-            ReturnPath =
-                g_strconcat
-                (
-                    WorkingDirectory,
-                    "/",
-                    SDP_DATABASE_FILENAME,
-                    NULL
-                );
-    }
-
-    if(!ReturnPath)
-    {
-        perror("Unable to access working directory : ");
-        exit(EXIT_FAILURE);
-    }
-
-    g_debug("SDP database path : %s", ReturnPath);
-
-    g_free(WorkingDirectory);
+    g_debug("SDP database path :\t\t%s", ReturnPath);
 
     return ReturnPath;
 }
@@ -1846,6 +1800,155 @@ FILE* checkOrCreateLockFile(gchar *LockFilePath, gchar *ErrorMessage)
     g_free(LockFilePath);
 
     return LockFile;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void initRootWorkingDirectories(RootWorkingDirectories *StructToInit)
+{
+    StructToInit->HomeDirectory =
+        g_strconcat
+        (
+            g_get_home_dir(),
+            "/", WORKING_HOME_DIRECTORY_NAME,
+            NULL
+        );
+    StructToInit->TempDirectory =
+        g_strconcat
+        (
+            g_get_tmp_dir(),
+            "/", WORKING_TEMP_DIRECTORY_NAME,
+            NULL
+        );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void freeRootWorkingDirectories(RootWorkingDirectories *StructToFree)
+{
+    g_free(StructToFree->HomeDirectory);
+    g_free(StructToFree->TempDirectory);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+gchar* createRootDirectory(RootWorkingDirectories *RootDirectories)
+{
+    gchar *ReturnPath = NULL;
+    gint MkdirReturn = 0;
+
+    MkdirReturn =
+        g_mkdir_with_parents
+        (
+            RootDirectories->HomeDirectory,
+            WORKING_DIRECTORY_MASK
+        );
+
+    if(MkdirReturn == 0)
+    {
+        ReturnPath = g_strdup(RootDirectories->HomeDirectory);
+    }
+    else
+    {
+        MkdirReturn =
+            g_mkdir_with_parents
+            (
+                RootDirectories->TempDirectory,
+                WORKING_DIRECTORY_MASK
+            );
+        if(MkdirReturn == 0)
+        {
+            ReturnPath = g_strdup(RootDirectories->TempDirectory);
+        }
+    }
+
+    if(!ReturnPath)
+    {
+        g_printerr
+        (
+            "Unable to create or access one of these working directories :\n"
+            "%s\n"
+            "%s\n"
+            "Aborting.",
+            RootDirectories->HomeDirectory,
+            RootDirectories->TempDirectory
+        );
+        exit(EXIT_FAILURE);
+    }
+
+    return ReturnPath;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+gchar* createDiscoveryDirectory(gchar *RootDirectory)
+{
+    gchar *ReturnPath =
+        g_strconcat
+        (
+            RootDirectory,
+            "/", WORKING_SUBDIRECTORY_DISCOVERY_NAME,
+            NULL
+        );
+
+    gint MkdirReturn = 0;
+
+    MkdirReturn = g_mkdir_with_parents(ReturnPath, WORKING_DIRECTORY_MASK);
+
+    if(MkdirReturn != 0)
+    {
+        g_printerr
+        (
+            "Unable to create or access working directory :\n"
+            "%s\n"
+            "Aborting.",
+            ReturnPath
+        );
+        exit(EXIT_FAILURE);
+    }
+
+    return ReturnPath;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void initWorkingDirectoryList(WorkingDirectoryList *StructToInit)
+{
+    RootWorkingDirectories RootDirectories;
+    initRootWorkingDirectories(&RootDirectories);
+
+    StructToInit->RootWorkingDirectory = createRootDirectory(&RootDirectories);
+    StructToInit->DiscoveryWorkingDirectory =
+        createDiscoveryDirectory(StructToInit->RootWorkingDirectory);
+
+    g_debug("Root working directory :\t%s", StructToInit->RootWorkingDirectory);
+    g_debug
+    (
+        "Discovery working directory :\t%s",
+        StructToInit->DiscoveryWorkingDirectory
+    );
+
+    freeRootWorkingDirectories(&RootDirectories);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void freeWorkingDirectoryList(WorkingDirectoryList *StructToFree)
+{
+    g_free(StructToFree->RootWorkingDirectory);
+    g_free(StructToFree->DiscoveryWorkingDirectory);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
