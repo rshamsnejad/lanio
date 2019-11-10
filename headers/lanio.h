@@ -61,6 +61,7 @@
 
 #define WORKING_HOME_DIRECTORY_NAME         ".lanio"
 #define WORKING_TEMP_DIRECTORY_NAME         "lanio"
+#define WORKING_SUBDIRECTORY_DISCOVERY_NAME "discovery"
 #define WORKING_DIRECTORY_MASK              0744
 
 #define SDP_DATABASE_FILENAME               "lanio-SDP.db"
@@ -203,6 +204,20 @@ typedef struct _ListDiscoveredCLIParameters
 }
     ListDiscoveredCLIParameters;
 
+typedef struct _RootWorkingDirectories
+{
+    gchar      *HomeDirectory;
+    gchar      *TempDirectory;
+}
+    RootWorkingDirectories;
+
+typedef struct _WorkingDirectoryList
+{
+    gchar      *RootWorkingDirectory;
+    gchar      *DiscoveryWorkingDirectory;
+}
+    WorkingDirectoryList;
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -288,7 +303,7 @@ void parseDiscoveryCLIOptions
 
 guint getStringArraySize(gchar **StringArray);
 
-gchar* getSDPDatabasePath(void);
+gchar* getSDPDatabasePath(gchar *DiscoveryDirectory);
 
 void initDiscoveryCLIParameters(DiscoveryCLIParameters *ParametersToInit);
 
@@ -373,6 +388,18 @@ GLogWriterOutput lanioLogWriter
 );
 
 gboolean checkNetworkInterfaceName(gchar *InterfaceName);
+
+void initRootWorkingDirectories(RootWorkingDirectories *StructToInit);
+
+void freeRootWorkingDirectories(RootWorkingDirectories *StructToFree);
+
+gchar* createRootDirectory(RootWorkingDirectories *RootDirectories);
+
+gchar* createDiscoveryDirectory(gchar *RootDirectory);
+
+void initWorkingDirectoryList(WorkingDirectoryList *StructToInit);
+
+void freeWorkingDirectoryList(WorkingDirectoryList *StructToFree);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

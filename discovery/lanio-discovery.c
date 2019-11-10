@@ -45,8 +45,14 @@ gint main(gint argc, gchar *argv[])
         glib_micro_version
     );
 
+    // Create and store the working directories' paths
+    WorkingDirectoryList WorkingDirectories;
+    initWorkingDirectoryList(&WorkingDirectories);
+
+
     // Set up the SDP Database file
-    gchar *SDPDatabasePath = getSDPDatabasePath();
+    gchar *SDPDatabasePath =
+        getSDPDatabasePath(WorkingDirectories.DiscoveryWorkingDirectory);
     sqlite3 *SDPDatabase = NULL;
     processSQLiteOpenError
     (
@@ -83,6 +89,7 @@ gint main(gint argc, gchar *argv[])
 
 
     sqlite3_close(SDPDatabase);
+    freeWorkingDirectoryList(&WorkingDirectories);
 
     g_debug("Reached end of main() in lanio-discovery.c");
     return EXIT_SUCCESS;
