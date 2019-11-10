@@ -72,7 +72,6 @@ gint main(gint argc, gchar *argv[])
         daemonizeDiscovery();
     }
 
-<<<<<<< HEAD
 /////////////// LOCK ////////////////
 
     FILE *DiscoveryLockFile = g_fopen("/tmp/lanio-discovery.lock", "w+");
@@ -99,9 +98,6 @@ gint main(gint argc, gchar *argv[])
 
 /////////////// LOCK ////////////////
 
-    g_info(PROG_LONG_NAME "\n-- Started network discovery");
-    discoverSAPAnnouncements(SDPDatabase);
-=======
     g_info
     (
         PROG_LONG_NAME "\n"
@@ -110,8 +106,6 @@ gint main(gint argc, gchar *argv[])
     );
 
     discoverSAPAnnouncements(SDPDatabase, CommandLineParameters.Interface);
->>>>>>> master
-
 
     sqlite3_close(SDPDatabase);
     fclose(DiscoveryLockFile);
