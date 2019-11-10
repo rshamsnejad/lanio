@@ -724,7 +724,7 @@ void parseDiscoveryCLIOptions
             "Network interface to listen to (mandatory)",
             NULL },
         { "terminal", 't', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
-            &Parameters->DiscoverTerminal,
+            &Parameters->Terminal,
             "Start stream discovery in the terminal instead of as a daemon",
             NULL },
         { "debug", 'd', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
@@ -804,7 +804,7 @@ gchar* getSDPDatabasePath(gchar *DiscoveryDirectory)
 
 void initDiscoveryCLIParameters(DiscoveryCLIParameters *ParametersToInit)
 {
-    ParametersToInit->DiscoverTerminal = FALSE;
+    ParametersToInit->Terminal = FALSE;
     ParametersToInit->Debug = FALSE;
     ParametersToInit->Interface = NULL;
 }
@@ -1712,8 +1712,9 @@ GLogWriterOutput lanioLogWriter
 )
 {
     GLogLevelFlags WantedLogLevel;
+    data_lanioLogWriter *LogParameters = (data_lanioLogWriter*) Data;
 
-    if(((DiscoveryCLIParameters*) Data)->Debug)
+    if(LogParameters->Debug)
         WantedLogLevel = G_LOG_LEVEL_DEBUG;
     else
         WantedLogLevel = G_LOG_LEVEL_INFO;
@@ -1722,7 +1723,7 @@ GLogWriterOutput lanioLogWriter
     if(LogLevel > WantedLogLevel)
         return G_LOG_WRITER_HANDLED;
 
-    if(((DiscoveryCLIParameters*) Data)->DiscoverTerminal)
+    if(LogParameters->Terminal)
         g_log_writer_standard_streams(LogLevel, Fields, NumberOfFields, NULL);
     else
         g_log_writer_journald(LogLevel, Fields, NumberOfFields, NULL);
