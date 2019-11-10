@@ -44,14 +44,19 @@ void bindSocket(GSocket *Socket, gchar *Address, gint Port)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void joinMulticastGroup(GSocket *Socket, gchar *MulticastAddressString)
+void joinMulticastGroup
+(
+    GSocket *Socket,
+    gchar *MulticastAddressString,
+    gchar *InterfaceName
+)
 {
     GInetAddress *MulticastAddress =
         g_inet_address_new_from_string(MulticastAddressString);
     GError *MulticastJoinError = NULL;
 
     g_socket_join_multicast_group(Socket, MulticastAddress,
-                                    FALSE, NULL, &MulticastJoinError);
+                                    FALSE, InterfaceName, &MulticastJoinError);
         // FALSE : No need for source-specific multicast
         // NULL : Listen on all Ethernet interfaces
 
@@ -390,22 +395,22 @@ void insertSAPPacketInSAPTable(sqlite3 *SDPDatabase, SAPPacket *PacketToInsert)
             "( "
                 "NULL, "
                 SQLITE_UNIX_CURRENT_TS_ESCAPED ", "
-                "'%u', " // Hash
+                "'%" G_GUINT16_FORMAT "', " // Hash
                 "'%s', " // Source address
                 "'%s', " // SDP
                 "'%s', " // Source type
                 "'%s', " // Source name
                 "'%s', " // Source info
                 "'%s', " // Stream address
-                "'%u', " // UDP port
+                "'%" G_GUINT16_FORMAT "', " // UDP port
                 "'%u', " // Payload type
                 "'%u', " // Bit depth
-                "'%u', " // Sample rate
+                "'%" G_GUINT32_FORMAT "', " // Sample rate
                 "'%u', " // Channel count
-                "'%u', " // Packet time
+                "'%" G_GUINT16_FORMAT "', " // Packet time
                 "'%u', " // PTP domain
                 "'%s', " // PTP GMID
-                "'%lu' " // Offset from GM
+                "'%" G_GUINT64_FORMAT "' " // Offset from GM
             ") "
             "ON CONFLICT (sap_hash) "
                 "DO UPDATE SET timestamp = " SQLITE_UNIX_CURRENT_TS_ESCAPED,
@@ -450,7 +455,11 @@ void insertSAPPacketInSAPTable(sqlite3 *SDPDatabase, SAPPacket *PacketToInsert)
             PacketToInsert->MessageIdentifierHash
         );
 
+    freeSDPStruct(SDPParametersToInsert);
     g_free(SQLQuery);
+
+    return;
+
     error:
         g_free(SDPParametersToInsert);
 }
@@ -471,7 +480,8 @@ void removeSAPPacketFromSAPTable
     gchar *SQLQuery =
         g_strdup_printf
         (
-            "DELETE FROM " SAP_TABLE_NAME " WHERE sap_hash = %d",
+            "DELETE FROM " SAP_TABLE_NAME " "
+            "WHERE sap_hash = %" G_GUINT16_FORMAT,
             PacketToRemove->MessageIdentifierHash
         );
 
@@ -665,7 +675,7 @@ void setUpSAPPacketLoop(GMainLoop *Loop, GSocket *Socket, sqlite3 *Database)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void discoverSAPAnnouncements(sqlite3 *SDPDatabase)
+void discoverSAPAnnouncements(sqlite3 *SDPDatabase, gchar *InterfaceName)
 {
     // Set up an UDP/IPv4 socket for SAP discovery
     GSocket *SAPSocket = NULL;
@@ -677,7 +687,7 @@ void discoverSAPAnnouncements(sqlite3 *SDPDatabase)
     bindSocket(SAPSocket, SAP_LOCAL_ADDRESS, SAP_MULTICAST_PORT);
 
     // Subscribe to the SAP Multicast group
-    joinMulticastGroup(SAPSocket, SAP_MULTICAST_ADDRESS);
+    joinMulticastGroup(SAPSocket, SAP_MULTICAST_ADDRESS, InterfaceName);
 
     // Create the SAP table if it does not exist in the database
     createSAPTable(SDPDatabase);
@@ -709,6 +719,10 @@ void parseDiscoveryCLIOptions
 {
     GOptionEntry CommandLineOptionEntries[] =
     {
+        { "interface", 'i', G_OPTION_FLAG_NONE, G_OPTION_ARG_STRING,
+            &Parameters->Interface,
+            "Network interface to listen to (mandatory)",
+            NULL },
         { "terminal", 't', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
             &Parameters->DiscoverTerminal,
             "Start stream discovery in the terminal instead of as a daemon",
@@ -742,7 +756,10 @@ void parseDiscoveryCLIOptions
 
     parseCLIContext(CommandLineOptionContext, argc, argv);
 
-    gboolean CheckParameters = TRUE;
+    gboolean CheckParameters =
+        Parameters->Interface != NULL &&
+        checkNetworkInterfaceName(Parameters->Interface);
+
     checkCLIParameters(CheckParameters, CommandLineOptionContext);
 
     g_option_context_free(CommandLineOptionContext);
@@ -835,6 +852,7 @@ void initDiscoveryCLIParameters(DiscoveryCLIParameters *ParametersToInit)
 {
     ParametersToInit->DiscoverTerminal = FALSE;
     ParametersToInit->Debug = FALSE;
+    ParametersToInit->Interface = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1496,16 +1514,17 @@ void printSDPStruct(SDPParameters *StructToPrint)
     g_debug("Source Name :\t\t\t%s", StructToPrint->SourceName);
     g_debug("Source Info :\t\t\t%s", StructToPrint->SourceInfo);;
     g_debug("Stream Address :\t\t%s", StructToPrint->StreamAddress);
-    g_debug("UDP Port :\t\t\t%u", StructToPrint->UDPPort);
+    g_debug("UDP Port :\t\t\t%" G_GUINT16_FORMAT, StructToPrint->UDPPort);
     g_debug("Payload Type :\t\t%u", StructToPrint->PayloadType);
     g_debug("Bit Depth :\t\t\t%u", StructToPrint->BitDepth);
-    g_debug("Sample Rate :\t\t\t%u", StructToPrint->SampleRate);
+    g_debug("Sample Rate :\t\t\t%" G_GUINT32_FORMAT, StructToPrint->SampleRate);
     g_debug("Channel Count :\t\t%u", StructToPrint->ChannelCount);
-    g_debug("Packet Time :\t\t\t%u", StructToPrint->PacketTime);
+    g_debug("Packet Time :\t\t\t%" G_GUINT16_FORMAT, StructToPrint->PacketTime);
     g_debug("PTP GM Clock Domain :\t\t%u",
         StructToPrint->PTPGrandMasterClockDomain);
     g_debug("PTP GM Clock ID :\t\t%s", StructToPrint->PTPGrandMasterClockID);
-    g_debug("Offset from GM Clock :\t%u", StructToPrint->OffsetFromMasterClock);
+    g_debug("Offset from GM Clock :\t%" G_GUINT64_FORMAT,
+        StructToPrint->OffsetFromMasterClock);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1755,6 +1774,45 @@ GLogWriterOutput lanioLogWriter
         g_log_writer_journald(LogLevel, Fields, NumberOfFields, NULL);
 
     return G_LOG_WRITER_HANDLED;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+gboolean checkNetworkInterfaceName(gchar *InterfaceName)
+{
+    gboolean ReturnValue = FALSE;
+
+    GError *DirectoryError = NULL;
+    GDir *InterfaceDirectory =
+        g_dir_open(NETWORK_INTERFACES_PATH, 0, &DirectoryError);
+        // 0 : Flags, currently unused. Reserved for future GLib versions.
+
+    processGError
+    (
+        "Unable to open network interfaces directory",
+        DirectoryError
+    );
+
+    const gchar *FileName = NULL;
+    while( (FileName = g_dir_read_name(InterfaceDirectory)) )
+    {
+        if(g_strcmp0(FileName, InterfaceName) == 0)
+        {
+            ReturnValue = TRUE;
+            break;
+        }
+    }
+
+    g_dir_close(InterfaceDirectory);
+
+    if(!ReturnValue)
+    {
+        g_warning("%s : Invalid network interface name.\n", InterfaceName);
+    }
+
+    return ReturnValue;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
