@@ -86,7 +86,7 @@ gint main(gint argc, gchar *argv[])
     {
         g_debug(PROG_NAME " Discovery : mode daemon");
 
-        daemonizeDiscovery();
+        daemonizeDiscovery(DiscoveryLockFile);
     }
 
     g_info

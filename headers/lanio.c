@@ -814,7 +814,7 @@ void initDiscoveryCLIParameters(DiscoveryCLIParameters *ParametersToInit)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void daemonizeDiscovery(void)
+void daemonizeDiscovery(FILE *LockFile)
 {
     pid_t ChildPID, ChildSID;
 
@@ -830,6 +830,21 @@ void daemonizeDiscovery(void)
         g_debug("Successfully forked. PID = %d", ChildPID);
         g_print(PROG_NAME " SAP discovery daemon started.\n");
         exit(EXIT_SUCCESS);
+    }
+
+        // Try to re-acquire the lock as it has been lost in the forking process
+    struct flock Lock;
+    memset(&Lock, 0, sizeof(Lock));
+
+    Lock.l_type = F_WRLCK;
+    Lock.l_whence = SEEK_SET;
+    Lock.l_start = 0;
+    Lock.l_len = 0;
+
+    if(fcntl(fileno(LockFile), F_SETLK, &Lock) == -1)
+    {
+        g_printerr(PROG_NAME " Discovery is already running. Aborting.");
+        exit(EXIT_FAILURE);
     }
 
     umask(0);

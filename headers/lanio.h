@@ -336,7 +336,7 @@ gchar* getSDPDatabasePath(gchar *DiscoveryDirectory);
 
 void initDiscoveryCLIParameters(DiscoveryCLIParameters *ParametersToInit);
 
-void daemonizeDiscovery(void);
+void daemonizeDiscovery(FILE *LockFile);
 
 void initListDiscoveredCLIParameters
     (ListDiscoveredCLIParameters *ParametersToInit);
