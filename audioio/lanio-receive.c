@@ -40,10 +40,13 @@ gint main(gint argc, gchar *argv[])
 
 ////////////////////////////////// CORE ////////////////////////////////////////
 
-    g_info("Receiving Stream ID %u", CommandLineParameters.StreamID);
     gchar *ReturnedSDP =
         getSDPFromHash(SDPDatabase, CommandLineParameters.StreamID);
-    g_debug("%s", ReturnedSDP);
+    if(!checkValidSDPString(ReturnedSDP))
+        g_info("Stream ID %u not found.", CommandLineParameters.StreamID);
+    else
+        g_info("Receiving Stream ID %u", CommandLineParameters.StreamID);
+    // g_debug("%s", ReturnedSDP);
 
     if(CommandLineParameters.JACK)
         g_info("Outputting to JACK server");
