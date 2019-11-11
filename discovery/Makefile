@@ -4,9 +4,9 @@ CC=gcc
 ODIR=.
 LDIR =../lib
 
-CFLAGS=-I$(IDIR) -I$(LDIR) `pkg-config --cflags glib-2.0 gio-2.0 sqlite3` -Wall -Werror -g
+CFLAGS=-I$(IDIR) -I$(LDIR) `pkg-config --cflags glib-2.0 gio-2.0 gstreamer-1.0 sqlite3` -Wall -Werror -g
 
-LIBS=`pkg-config --libs glib-2.0 gio-2.0 sqlite3`
+LIBS=`pkg-config --libs glib-2.0 gio-2.0 gstreamer-1.0 sqlite3`
 
 _DEPS = lanio.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
