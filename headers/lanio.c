@@ -975,14 +975,16 @@ void parseCLIContext(GOptionContext *Context, gint argc, gchar *argv[])
 
 gboolean checkValidSDPString(gchar *sdp)
 {
-    return
-        g_regex_match_simple
-            (
-                REGEX_SDP,
-                sdp,
-                G_REGEX_CASELESS | G_REGEX_MULTILINE,
-                G_REGEX_MATCH_NOTEMPTY
-            );
+    if(!sdp)
+        return FALSE;
+    else
+        return g_regex_match_simple
+                (
+                    REGEX_SDP,
+                    sdp,
+                    G_REGEX_CASELESS | G_REGEX_MULTILINE,
+                    G_REGEX_MATCH_NOTEMPTY
+                );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
