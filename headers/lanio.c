@@ -2160,8 +2160,6 @@ gchar* getSDPFromHash(sqlite3 *SDPDatabase, guint16 Hash)
             Hash
         );
 
-    // g_debug("SQL Query : %s", SQLQuery);
-
     gchar *ReturnedSDP = NULL;
 
     querySQLiteDatabase
@@ -2171,8 +2169,6 @@ gchar* getSDPFromHash(sqlite3 *SDPDatabase, guint16 Hash)
         callback_returnSDP,
         &ReturnedSDP
     );
-
-    // g_debug("%s", ReturnedSDP);
 
     return ReturnedSDP;
 }
