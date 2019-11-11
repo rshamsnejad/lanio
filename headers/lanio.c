@@ -1780,6 +1780,54 @@ gboolean checkNetworkInterfaceName(gchar *InterfaceName)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+FILE* checkOrCreateLockFile
+(
+    gchar *LockFileName,
+    WorkingDirectoryList *WorkingDirectories,
+    gchar *ErrorMessage
+)
+{
+    gchar *LockFilePath =
+        g_strconcat
+        (
+            WorkingDirectories->RootWorkingDirectory,
+            "/", LockFileName,
+            NULL
+        );
+
+    FILE *LockFile = g_fopen(LockFilePath, "w+");
+
+    if(!LockFile)
+    {
+        g_warning("Can't open lock file %s\n", LockFilePath);
+        exit(EXIT_FAILURE);
+    }
+
+    struct flock Lock;
+    memset(&Lock, 0, sizeof(Lock));
+
+    Lock.l_type = F_WRLCK;
+    Lock.l_whence = SEEK_SET;
+    Lock.l_start = 0;
+    Lock.l_len = 0;
+
+    if(fcntl(fileno(LockFile), F_SETLK, &Lock) == -1)
+    {
+        g_printerr("%s\n", ErrorMessage);
+        exit(EXIT_FAILURE);
+    }
+
+    g_debug("Lock file path : \t\t%s", LockFilePath);
+
+    g_free(LockFilePath);
+
+    return LockFile;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
 void initRootWorkingDirectories(RootWorkingDirectories *StructToInit)
 {
     StructToInit->HomeDirectory =

@@ -52,6 +52,14 @@ gint main(gint argc, gchar *argv[])
     WorkingDirectoryList WorkingDirectories;
     initWorkingDirectoryList(&WorkingDirectories);
 
+    // Check if an instance is already running based on lock file
+    FILE *DiscoveryLockFile =
+        checkOrCreateLockFile
+        (
+            LOCK_FILE_DISCOVERY,
+            &WorkingDirectories,
+            PROG_NAME " Discovery is already running. Aborting."
+        );
 
     // Set up the SDP Database file
     gchar *SDPDatabasePath =
@@ -90,8 +98,8 @@ gint main(gint argc, gchar *argv[])
 
     discoverSAPAnnouncements(SDPDatabase, CommandLineParameters.Interface);
 
-
     sqlite3_close(SDPDatabase);
+    fclose(DiscoveryLockFile);
     freeWorkingDirectoryList(&WorkingDirectories);
 
     g_debug("Reached end of main() in lanio-discovery.c");
