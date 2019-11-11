@@ -429,6 +429,8 @@ void freeWorkingDirectoryList(WorkingDirectoryList *StructToFree);
 
 void initReceiveCLIParameters(ReceiveCLIParameters *ParametersToInit);
 
+void freeReceiveCLIParameters(ReceiveCLIParameters *StructToFree);
+
 void parseReceiveCLIOptions
 (
     ReceiveCLIParameters *Parameters,

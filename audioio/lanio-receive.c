@@ -58,6 +58,7 @@ gint main(gint argc, gchar *argv[])
 
     sqlite3_close(SDPDatabase);
     freeWorkingDirectoryList(&WorkingDirectories);
+    freeReceiveCLIParameters(&CommandLineParameters);
 
 ////////////////////////////////////////////////////////////////////////////////
 
