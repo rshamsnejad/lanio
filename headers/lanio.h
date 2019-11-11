@@ -21,6 +21,7 @@
 #include <glib.h>
 #include <glib/gstdio.h>
 #include <gio/gio.h>
+#include <glib-unix.h>
 
 // === GStreamer headers ===
 
@@ -246,6 +247,13 @@ typedef struct _ReceiveCLIParameters
     guint16     StreamID;
 }
     ReceiveCLIParameters;
+
+typedef struct _data_callback_terminateOnUNIXSignals
+{
+    GMainLoop  *LoopToQuit;
+    gint        Signal;
+}
+    data_callback_terminateOnUNIXSignals;
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -494,6 +502,8 @@ void callback_onPadAdded
     GstPad *SourcePad,
     gpointer Data
 );
+
+gboolean callback_terminateOnUNIXSignals(gpointer Data);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

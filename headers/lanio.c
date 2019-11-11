@@ -637,6 +637,26 @@ gboolean checkSAPPacket(SAPPacket *PacketToCheck)
 
 void setUpSAPPacketLoop(GMainLoop *Loop, GSocket *Socket, sqlite3 *Database)
 {
+    // Connecting UNIX signal handlers
+    static data_callback_terminateOnUNIXSignals SignalInterruptData;
+    SignalInterruptData.LoopToQuit = Loop;
+    SignalInterruptData.Signal = SIGINT;
+    g_unix_signal_add
+    (
+        SignalInterruptData.Signal,
+        (GSourceFunc) callback_terminateOnUNIXSignals,
+        &SignalInterruptData
+    );
+    static data_callback_terminateOnUNIXSignals SignalTerminateData;
+    SignalTerminateData.LoopToQuit = Loop;
+    SignalTerminateData.Signal = SIGTERM;
+    g_unix_signal_add
+    (
+        SignalTerminateData.Signal,
+        (GSourceFunc) callback_terminateOnUNIXSignals,
+        &SignalTerminateData
+    );
+
     // Every 3 seconds, delete outdated database entries
     static data_deleteOldSDPEntries TimeoutDeleteData;
 
@@ -2343,6 +2363,29 @@ gboolean callback_processBusMessages
         default:
             break;
     }
+
+    return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+gboolean callback_terminateOnUNIXSignals(gpointer Data)
+{
+    data_callback_terminateOnUNIXSignals *Struct =
+        (data_callback_terminateOnUNIXSignals*) Data;
+
+    gchar *String = NULL;
+
+    if(Struct->Signal == SIGINT)
+        String = "Keyboard Interrupt";
+    else if(Struct->Signal == SIGTERM)
+        String = "SIGTERM";
+
+    g_info("%s. Terminating", String);
+
+    g_main_loop_quit(Struct->LoopToQuit);
 
     return TRUE;
 }
