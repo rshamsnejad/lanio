@@ -2081,3 +2081,83 @@ gboolean checkALSADeviceName(gchar *NameToCheck)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+gint callback_returnSDP
+(
+    gpointer Data,
+    gint ColumnCount,
+    gchar **DataRow,
+    gchar **ColumnRow
+)
+{
+    gchar **ReturnedSDP = (gchar**) Data;
+    *ReturnedSDP = g_strdup(DataRow[0]);
+
+    return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void querySQLiteDatabase
+(
+    sqlite3 *SDPDatabase,
+    gchar *SQLQuery,
+    gpointer Callback,
+    gpointer ReturnPointer
+)
+{
+    gint SQLiteExecErrorCode = 0;
+    gchar *SQLiteExecErrorString = NULL;
+
+    SQLiteExecErrorCode =
+        sqlite3_exec
+        (
+            SDPDatabase,
+            SQLQuery,
+            Callback,
+            ReturnPointer,
+            &SQLiteExecErrorString
+        );
+
+    processSQLiteExecError
+    (
+        SQLiteExecErrorCode,
+        SQLiteExecErrorString,
+        SQLQuery
+    );
+
+    g_free(SQLQuery);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+gchar* getSDPFromHash(sqlite3 *SDPDatabase, guint16 Hash)
+{
+    gchar *SQLQuery =
+        g_strdup_printf
+        (
+            "SELECT sdp FROM " SAP_TABLE_NAME " WHERE sap_hash = %u",
+            Hash
+        );
+
+    // g_debug("SQL Query : %s", SQLQuery);
+
+    gchar *ReturnedSDP = NULL;
+
+    querySQLiteDatabase
+    (
+        SDPDatabase,
+        SQLQuery,
+        callback_returnSDP,
+        &ReturnedSDP
+    );
+
+    // g_debug("%s", ReturnedSDP);
+
+    return ReturnedSDP;
+}
+

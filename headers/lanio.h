@@ -440,6 +440,23 @@ gchar** getALSADeviceList(void);
 
 gboolean checkALSADeviceName(gchar *NameToCheck);
 
+gint callback_returnSDP
+(
+    gpointer Data,
+    gint ColumnCount,
+    gchar **DataRow,
+    gchar **ColumnRow
+);
+
+void querySQLiteDatabase
+(
+    sqlite3 *SDPDatabase,
+    gchar *SQLQuery,
+    gpointer Callback,
+    gpointer ReturnPointer
+);
+
+gchar* getSDPFromHash(sqlite3 *SDPDatabase, guint16 Hash);
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

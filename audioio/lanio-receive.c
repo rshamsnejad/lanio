@@ -75,6 +75,9 @@ gint main(gint argc, gchar *argv[])
     g_free(SDPDatabasePath);
 
     g_info("Receiving Stream ID %u", CommandLineParameters.StreamID);
+    gchar *ReturnedSDP =
+        getSDPFromHash(SDPDatabase, CommandLineParameters.StreamID);
+    g_debug("%s", ReturnedSDP);
 
     if(CommandLineParameters.JACK)
     {
