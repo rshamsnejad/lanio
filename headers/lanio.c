@@ -1993,6 +1993,13 @@ void parseReceiveCLIOptions
         NULL
     );
 
+    // Adding the gstreamer command line options
+    g_option_context_add_group
+    (
+        CommandLineOptionContext,
+        gst_init_get_option_group()
+    );
+
     parseCLIContext(CommandLineOptionContext, argc, argv);
 
     gboolean CheckParameters =
@@ -2161,3 +2168,71 @@ gchar* getSDPFromHash(sqlite3 *SDPDatabase, guint16 Hash)
     return ReturnedSDP;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void openSDPDatabase
+(
+    sqlite3 **SDPDatabase,
+    gint Flags,
+    WorkingDirectoryList *WorkingDirectories
+)
+{
+    gchar *SDPDatabasePath =
+        getSDPDatabasePath(WorkingDirectories->DiscoveryWorkingDirectory);
+    processSQLiteOpenError
+    (
+        sqlite3_open_v2
+        (
+            SDPDatabasePath,
+            SDPDatabase,
+            Flags,
+            NULL
+        )
+    );
+    g_free(SDPDatabasePath);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void setLogHandler(gboolean Terminal, gboolean Debug)
+{
+    static data_lanioLogWriter LogParameters;
+    // static is needed here for the log writer function to access
+    LogParameters.Terminal = Terminal;
+    LogParameters.Debug = Debug;
+
+    g_log_set_writer_func
+    (
+        lanioLogWriter,
+        &LogParameters,
+        NULL
+    );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void printLibraryVersions(void)
+{
+    g_debug
+    (
+        "GLib version %u.%u.%u",
+        glib_major_version,
+        glib_minor_version,
+        glib_micro_version
+    );
+    g_debug
+    (
+        "%s",
+        gst_version_string()
+    );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
