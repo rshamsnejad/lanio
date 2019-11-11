@@ -59,6 +59,26 @@ gint main(gint argc, gchar *argv[])
 
     GMainLoop *LanioReceiveLoop = g_main_loop_new(NULL, FALSE);
 
+        // Connecting UNIX signal handlers
+    static data_callback_terminateOnUNIXSignals SignalInterruptData;
+    SignalInterruptData.LoopToQuit = LanioReceiveLoop;
+    SignalInterruptData.Signal = SIGINT;
+    g_unix_signal_add
+    (
+        SignalInterruptData.Signal,
+        (GSourceFunc) callback_terminateOnUNIXSignals,
+        &SignalInterruptData
+    );
+    static data_callback_terminateOnUNIXSignals SignalTerminateData;
+    SignalTerminateData.LoopToQuit = LanioReceiveLoop;
+    SignalTerminateData.Signal = SIGTERM;
+    g_unix_signal_add
+    (
+        SignalTerminateData.Signal,
+        (GSourceFunc) callback_terminateOnUNIXSignals,
+        &SignalTerminateData
+    );
+
     GstElement
         *Pipeline, *SDPDecoder, *DecodeBin, *Converter, *Resampler, *ALSASink;
 
@@ -138,7 +158,6 @@ gint main(gint argc, gchar *argv[])
     gst_element_set_state(Pipeline, GST_STATE_PLAYING);
     g_main_loop_run(LanioReceiveLoop);
 
-    g_info("Exiting.");
     gst_element_set_state(Pipeline, GST_STATE_NULL);
     // gst_object_unref(GST_OBJECT(Pipeline));
     g_source_remove(PipelineMessageBusWatchID);
