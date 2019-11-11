@@ -2243,3 +2243,78 @@ void printLibraryVersions(void)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+gboolean callback_processBusMessages
+(
+    GstBus *Bus,
+    GstMessage *Message,
+    gpointer Data
+)
+{
+    GMainLoop *Loop = (GMainLoop*) Data;
+
+    switch(GST_MESSAGE_TYPE(Message))
+    {
+        case GST_MESSAGE_EOS:
+        {
+            g_info("End of stream.");
+            g_main_loop_quit(Loop);
+            break;
+        }
+
+        case GST_MESSAGE_ERROR:
+        {
+            gchar *Debug;
+            GError *Error;
+
+            gst_message_parse_error(Message, &Error, &Debug);
+            g_free(Debug);
+
+            g_printerr("Pipeline error : %s\n", Error->message);
+            g_error_free(Error);
+
+            g_main_loop_quit(Loop);
+            break;
+        }
+
+        default:
+            break;
+    }
+
+    return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void callback_onPadAdded
+(
+    GstElement *SourceElement,
+    GstPad *SourcePad,
+    gpointer Data
+)
+{
+    GstElement *SinkElement = (GstElement*) Data;
+    GstPad *SinkPad = gst_element_get_static_pad(SinkElement, "sink");
+
+    gchar *SourceElementName = gst_object_get_name(GST_OBJECT(SourceElement));
+    gchar *SinkElementName = gst_object_get_name(GST_OBJECT(SinkElement));
+
+    g_debug("Linking %s and %s...", SourceElementName, SinkElementName);
+
+    GstPadLinkReturn PadLinkReturn = gst_pad_link(SourcePad, SinkPad);
+
+    if(PadLinkReturn == GST_PAD_LINK_OK)
+        g_debug("Succesfully linked");
+    else if(PadLinkReturn == GST_PAD_LINK_WAS_LINKED)
+        g_debug("Already linked");
+    else
+        g_debug("Link failure.");
+
+    gst_object_unref(SinkPad);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////

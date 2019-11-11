@@ -40,19 +40,109 @@ gint main(gint argc, gchar *argv[])
 
 ////////////////////////////////// CORE ////////////////////////////////////////
 
+    if(CommandLineParameters.JACK)
+    {
+        g_info("Outputting to JACK server not yet supported. Aborting");
+        exit(EXIT_FAILURE);
+    }
+    else if(CommandLineParameters.ALSADevice)
+        g_info
+            ("Outputting to ALSA Device %s", CommandLineParameters.ALSADevice);
+
     gchar *ReturnedSDP =
         getSDPFromHash(SDPDatabase, CommandLineParameters.StreamID);
     if(!checkValidSDPString(ReturnedSDP))
         g_info("Stream ID %u not found.", CommandLineParameters.StreamID);
     else
-        g_info("Receiving Stream ID %u", CommandLineParameters.StreamID);
-    // g_debug("%s", ReturnedSDP);
+        g_info("Stream ID %u selected", CommandLineParameters.StreamID);
 
-    if(CommandLineParameters.JACK)
-        g_info("Outputting to JACK server");
-    else if(CommandLineParameters.ALSADevice)
-        g_info
-            ("Outputting to ALSA Device %s", CommandLineParameters.ALSADevice);
+
+    GMainLoop *LanioReceiveLoop = g_main_loop_new(NULL, FALSE);
+
+    GstElement
+        *Pipeline, *SDPDecoder, *DecodeBin, *Converter, *Resampler, *ALSASink;
+
+    Pipeline    = gst_pipeline_new("AES67 receiver");
+    SDPDecoder  = gst_element_factory_make("sdpsrc", "SDP Decoder");
+    DecodeBin   = gst_element_factory_make("decodebin", "Decode Bin");
+    Converter   = gst_element_factory_make("audioconvert", "Audio Converter");
+    Resampler   = gst_element_factory_make("audioresample", "Audio Resampler");
+    ALSASink    = gst_element_factory_make("alsasink", "ALSA Sink");
+
+    if
+    (
+        !Pipeline || !SDPDecoder || !DecodeBin ||
+        !Converter || !Resampler || !ALSASink
+    )
+    {
+        g_printerr("One GStreamer element could not be created. Aborting.");
+        exit(EXIT_FAILURE);
+    }
+
+    g_object_set(G_OBJECT(SDPDecoder), "sdp", ReturnedSDP, NULL);
+    // g_object_set(G_OBJECT(SDPDecoder), "location", "sdp://test.sdp", NULL);
+    g_object_set
+    (
+        G_OBJECT(ALSASink),
+        "device",
+        CommandLineParameters.ALSADevice,
+        NULL
+    );
+
+    GstBus *PipelineMessageBus = gst_pipeline_get_bus(GST_PIPELINE(Pipeline));
+    guint PipelineMessageBusWatchID =
+        gst_bus_add_watch
+        (
+            PipelineMessageBus,
+            callback_processBusMessages,
+            LanioReceiveLoop
+        );
+    gst_object_unref(PipelineMessageBus);
+
+    gst_bin_add_many
+    (
+        GST_BIN(Pipeline),
+        SDPDecoder,
+        DecodeBin,
+        Converter,
+        Resampler,
+        ALSASink,
+        NULL
+    );
+
+    gst_element_link_many
+    (
+        Converter,
+        Resampler,
+        ALSASink,
+        NULL
+    );
+
+        // SDPDecoder and DecodeBin have dynamic pads
+    g_signal_connect
+    (
+        SDPDecoder,
+        "pad-added",
+        G_CALLBACK(callback_onPadAdded),
+        DecodeBin
+    );
+    g_signal_connect
+    (
+        DecodeBin,
+        "pad-added",
+        G_CALLBACK(callback_onPadAdded),
+        Converter
+    );
+
+    g_info("Playing Stream ID %u", CommandLineParameters.StreamID);
+    gst_element_set_state(Pipeline, GST_STATE_PLAYING);
+    g_main_loop_run(LanioReceiveLoop);
+
+    g_info("Exiting.");
+    gst_element_set_state(Pipeline, GST_STATE_NULL);
+    // gst_object_unref(GST_OBJECT(Pipeline));
+    g_source_remove(PipelineMessageBusWatchID);
+    g_main_loop_unref(LanioReceiveLoop);
 
 ////////////////////////////////////////////////////////////////////////////////
 
