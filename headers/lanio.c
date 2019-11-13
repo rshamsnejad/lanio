@@ -2136,7 +2136,7 @@ gchar** getALSADeviceList(void)
     g_spawn_check_exit_status(status, &ALSACheckError);
 
     if(stderr)
-        g_printerr(stderr);
+        g_printerr("%s", stderr);
     processGError("Error checking available ALSA devices", ALSACheckError);
 
     ReturnStringArray = g_strsplit(stdout, "\n", 0);
